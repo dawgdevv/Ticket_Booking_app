@@ -1,10 +1,20 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import Modal from "../pages/modal.jsx";
+import CheckoutForm from "../pages/checkoutform.jsx";
+
+const stripePromise = loadStripe("your_stripe_public_key");
 
 const TicketMarketplace = () => {
   const [resaleTickets, setResaleTickets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
+  const [showSolanaModal, setShowSolanaModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [userPublicKey, setUserPublicKey] = useState("");
+  const [showStripeModal, setShowStripeModal] = useState(false);
 
   useEffect(() => {
     const fetchResellTickets = async () => {
@@ -55,6 +65,43 @@ const TicketMarketplace = () => {
     } catch (error) {
       console.error("Error purchasing ticket:", error);
       alert("Error purchasing ticket. Please try again.");
+    }
+  };
+
+  const handleStripePayment = async (ticketId) => {
+    setSelectedTicket(ticketId);
+    setShowStripeModal(true);
+  };
+
+  const handleSolanaPayment = async (ticketId) => {
+    setSelectedTicket(ticketId);
+    setShowSolanaModal(true);
+  };
+
+  const handleSolanaConfirm = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/tickets/purchase-solana",
+        {
+          resellTicketId: selectedTicket,
+          userPublicKey,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const updatedTickets = resaleTickets.filter(
+        (ticket) => ticket._id !== selectedTicket
+      );
+      setResaleTickets(updatedTickets);
+      setShowSolanaModal(false);
+      setUserPublicKey("");
+      alert("Ticket purchased successfully with Solana!");
+    } catch {
+      alert("Error purchasing ticket with Solana. Please try again.");
     }
   };
 
@@ -127,12 +174,20 @@ const TicketMarketplace = () => {
               <span className="font-medium">Seller:</span>{" "}
               {ticket.ticket.owner.username}
             </p>
-            <button
-              onClick={() => handlePurchase(ticket._id)}
-              className="w-full bg-black text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300"
-            >
-              Purchase Ticket
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleStripePayment(ticket._id)}
+                className="w-1/2 bg-black text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300"
+              >
+                Pay with Card
+              </button>
+              <button
+                onClick={() => handleSolanaPayment(ticket._id)}
+                className="w-1/2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors duration-300"
+              >
+                Pay with Solana
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -142,6 +197,47 @@ const TicketMarketplace = () => {
           No tickets found matching your search.
         </p>
       )}
+
+      {/* Stripe Modal */}
+      <Modal isOpen={showStripeModal} onClose={() => setShowStripeModal(false)}>
+        <Elements stripe={stripePromise}>
+          <CheckoutForm
+            amount={
+              selectedTicket
+                ? resaleTickets.find((t) => t._id === selectedTicket)?.price *
+                  100
+                : 0
+            }
+            onPaymentSuccess={() => handlePurchase(selectedTicket)}
+          />
+        </Elements>
+      </Modal>
+
+      {/* Solana Modal */}
+      <Modal
+        isOpen={showSolanaModal}
+        onClose={() => {
+          setShowSolanaModal(false);
+          setUserPublicKey("");
+        }}
+      >
+        <div className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Pay with Solana</h2>
+          <input
+            type="text"
+            placeholder="Enter your Solana public key"
+            value={userPublicKey}
+            onChange={(e) => setUserPublicKey(e.target.value)}
+            className="w-full px-4 py-2 rounded-md border mb-4"
+          />
+          <button
+            onClick={handleSolanaConfirm}
+            className="w-full bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Confirm Payment
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

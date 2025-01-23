@@ -5,16 +5,21 @@ import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "../pages/checkoutform.jsx";
 import Modal from "../pages/modal.jsx";
 import { jsPDF } from "jspdf";
+import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
 );
+
+const connection = new Connection(clusterApiUrl("devnet"));
 
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ticketDetails, setTicketDetails] = useState(null);
+  const [userPublicKey, setUserPublicKey] = useState("");
+  const [showSolanaModal, setShowSolanaModal] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -56,6 +61,47 @@ const Events = () => {
         alert("Booking failed. Please try again.");
       }
     }
+  };
+
+  const handleSolanaPayment = async () => {
+    if (selectedEvent && userPublicKey) {
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/tickets/book-solana",
+          {
+            eventId: selectedEvent._id,
+            quantity: 1,
+            seats: ["A1"],
+            userPublicKey,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        console.log("Booking response:", response.data);
+
+        setTicketDetails(response.data.ticket);
+        setIsModalOpen(true);
+      } catch (error) {
+        console.error("Booking failed:", error);
+        alert("Booking failed. Please try again.");
+      }
+    } else {
+      alert("Please enter your Solana public key.");
+    }
+  };
+
+  const handleSolanaModalOpen = (event) => {
+    setSelectedEvent(event);
+    setShowSolanaModal(true);
+  };
+
+  const handleSolanaModalClose = () => {
+    setShowSolanaModal(false);
+    setUserPublicKey("");
   };
 
   const generateTicketPDF = () => {
@@ -117,20 +163,28 @@ const Events = () => {
               <span className="font-medium text-gray-800">Price:</span>{" "}
               {formatPrice(event.price)}
             </p>
-            <button
-              className="w-full bg-black text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300"
-              onClick={() => {
-                setSelectedEvent(event);
-                setIsModalOpen(true);
-              }}
-            >
-              Book Tickets
-            </button>
+            <div className="flex gap-2">
+              <button
+                className="w-1/2 bg-black text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300"
+                onClick={() => {
+                  setSelectedEvent(event);
+                  setIsModalOpen(true);
+                }}
+              >
+                Book with Card
+              </button>
+              <button
+                className="w-1/2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors duration-300"
+                onClick={() => handleSolanaModalOpen(event)}
+              >
+                Book with Solana
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Modal for payment */}
+      {/* Stripe Payment Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <Elements stripe={stripePromise}>
           <CheckoutForm
@@ -138,6 +192,32 @@ const Events = () => {
             onPaymentSuccess={handlePaymentSuccess}
           />
         </Elements>
+      </Modal>
+
+      {/* Solana Payment Modal */}
+      <Modal isOpen={showSolanaModal} onClose={handleSolanaModalClose}>
+        <div className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Book with Solana</h2>
+          <div className="mb-4">
+            <p className="text-lg font-semibold">{selectedEvent?.name}</p>
+            <p className="text-gray-600">
+              Price: {formatPrice(selectedEvent?.price)}
+            </p>
+          </div>
+          <input
+            type="text"
+            placeholder="Enter your Solana public key"
+            value={userPublicKey}
+            onChange={(e) => setUserPublicKey(e.target.value)}
+            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          />
+          <button
+            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors duration-300"
+            onClick={handleSolanaPayment}
+          >
+            Confirm Payment
+          </button>
+        </div>
       </Modal>
 
       {/* Ticket Details Modal */}

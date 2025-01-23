@@ -6,6 +6,8 @@ import {
 	buyresellTickets,
 	getAuctionItems,
 	createAuction,
+	bookTicketWithSolana,
+	buyResellTicketWithSolana,
 } from "../controllers/ticket.controller.js";
 import { authenticateUser } from "../middlewares/auth.js";
 
@@ -17,4 +19,7 @@ router.get("/marketplace", authenticateUser, getresellTickets);
 router.post("/purchase", authenticateUser, buyresellTickets);
 router.post("/auction", authenticateUser, createAuction);
 router.get("/auctionitems", authenticateUser, getAuctionItems);
+router.post("/book-solana", authenticateUser, bookTicketWithSolana);
+router.post("/purchase-solana", authenticateUser, buyResellTicketWithSolana);
+
 export default router;
