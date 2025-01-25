@@ -1,56 +1,56 @@
-import React, { useState, useEffect } from "react"
-import axios from "axios"
-import { motion, AnimatePresence } from "framer-motion"
-import { useSpring, animated } from "react-spring"
-import Confetti from "react-confetti"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSpring, animated } from "react-spring";
+import Confetti from "react-confetti";
 
 const ResellTickets = () => {
-  const [userTickets, setUserTickets] = useState([])
-  const [selectedTicket, setSelectedTicket] = useState(null)
-  const [resellPrice, setResellPrice] = useState("")
+  const [userTickets, setUserTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [resellPrice, setResellPrice] = useState("");
   const [alert, setAlert] = useState({
     open: false,
     message: "",
     severity: "success",
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [showConfetti, setShowConfetti] = useState(false)
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     const fetchUserTickets = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         const response = await axios.get("http://localhost:8000/auth/tickets", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        })
-        setUserTickets(response.data)
+        });
+        setUserTickets(response.data);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-      setIsLoading(false)
-    }
-    fetchUserTickets()
-  }, [])
+      setIsLoading(false);
+    };
+    fetchUserTickets();
+  }, []);
 
   useEffect(() => {
     if (alert.open) {
       const timer = setTimeout(() => {
-        setAlert({ ...alert, open: false })
-      }, 3000)
-      return () => clearTimeout(timer)
+        setAlert({ ...alert, open: false });
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  }, [alert])
+  }, [alert]);
 
   const handleSelectTicket = (ticket) => {
-    setSelectedTicket(ticket)
-    setResellPrice(ticket.price)
-  }
+    setSelectedTicket(ticket);
+    setResellPrice(ticket.price);
+  };
 
   const handleResellPriceChange = (e) => {
-    setResellPrice(e.target.value)
-  }
+    setResellPrice(e.target.value);
+  };
 
   const handleResellTicket = async () => {
     if (selectedTicket && resellPrice) {
@@ -63,50 +63,52 @@ const ResellTickets = () => {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
             timeout: 5000,
-          },
-        )
+          }
+        );
         const updatedTickets = userTickets.map((ticket) =>
-          ticket._id === selectedTicket._id ? { ...ticket, price: resellPrice } : ticket,
-        )
-        setUserTickets(updatedTickets)
-        setSelectedTicket(null)
-        setResellPrice("")
+          ticket._id === selectedTicket._id
+            ? { ...ticket, price: resellPrice }
+            : ticket
+        );
+        setUserTickets(updatedTickets);
+        setSelectedTicket(null);
+        setResellPrice("");
         setAlert({
           open: true,
           message: "Ticket listed for resale successfully",
           severity: "success",
-        })
-        setShowConfetti(true)
-        setTimeout(() => setShowConfetti(false), 5000)
+        });
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
       } catch (error) {
-        console.error("Reselling ticket failed:", error)
+        console.error("Reselling ticket failed:", error);
         setAlert({
           open: true,
           message: "Reselling ticket failed. Please try again.",
           severity: "error",
-        })
+        });
       }
     }
-  }
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
-    }).format(price)
-  }
+    }).format(price);
+  };
 
   const pageVariants = {
     initial: { opacity: 0, y: 50 },
     in: { opacity: 1, y: 0 },
     out: { opacity: 0, y: -50 },
-  }
+  };
 
   const pageTransition = {
     type: "tween",
     ease: "anticipate",
     duration: 0.5,
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-blue-50 text-black">
@@ -126,10 +128,14 @@ const ResellTickets = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className={`mb-8 p-4 rounded-md ${
-                alert.severity === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                alert.severity === "success"
+                  ? "bg-green-500 text-white"
+                  : "bg-red-500 text-white"
               }`}
             >
-              <p className="font-semibold">{alert.severity === "success" ? "Success" : "Error"}</p>
+              <p className="font-semibold">
+                {alert.severity === "success" ? "Success" : "Error"}
+              </p>
               <p>{alert.message}</p>
             </motion.div>
           )}
@@ -148,7 +154,9 @@ const ResellTickets = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <h2 className="text-3xl font-semibold mb-6 text-black">Your Tickets</h2>
+            <h2 className="text-3xl font-semibold mb-6 text-black">
+              Your Tickets
+            </h2>
             {isLoading ? (
               <LoadingSpinner />
             ) : (
@@ -168,9 +176,15 @@ const ResellTickets = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <p className="font-semibold text-xl text-black">{ticket.event.name}</p>
-                    <p className="text-sm text-gray-600">Date: {new Date(ticket.event.date).toLocaleDateString()}</p>
-                    <p className="text-sm text-gray-600">Current Price: {formatPrice(ticket.price)}</p>
+                    <p className="font-semibold text-xl text-black">
+                      {ticket.event.name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Date: {new Date(ticket.event.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Current Price: {formatPrice(ticket.price)}
+                    </p>
                   </motion.li>
                 ))}
               </ul>
@@ -183,7 +197,9 @@ const ResellTickets = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <h2 className="text-3xl font-semibold mb-6 text-black">Resell Selected Ticket</h2>
+            <h2 className="text-3xl font-semibold mb-6 text-black">
+              Resell Selected Ticket
+            </h2>
             <AnimatePresence mode="wait">
               {selectedTicket ? (
                 <motion.div
@@ -197,9 +213,14 @@ const ResellTickets = () => {
                     <div className="absolute top-0 left-1/2 w-8 h-8 bg-purple-900 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
                     <div className="absolute bottom-0 left-1/2 w-8 h-8 bg-purple-900 rounded-full -translate-x-1/2 translate-y-1/2"></div>
                     <div className="border-2 border-dashed border-white/50 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white mb-2">{selectedTicket.event.name}</p>
+                      <p className="text-2xl font-bold text-white mb-2">
+                        {selectedTicket.event.name}
+                      </p>
                       <p className="text-blue-200 mb-4">
-                        Date: {new Date(selectedTicket.event.date).toLocaleDateString()}
+                        Date:{" "}
+                        {new Date(
+                          selectedTicket.event.date
+                        ).toLocaleDateString()}
                       </p>
                       <AnimatedInput
                         id="resellPrice"
@@ -228,7 +249,9 @@ const ResellTickets = () => {
                   transition={{ duration: 0.3 }}
                   className="ticket-shape bg-white p-6 rounded-lg shadow-xl flex items-center justify-center h-64"
                 >
-                  <p className="text-gray-500 text-center text-lg">Select a ticket to resell</p>
+                  <p className="text-gray-500 text-center text-lg">
+                    Select a ticket to resell
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -236,28 +259,36 @@ const ResellTickets = () => {
         </motion.div>
       </div>
       {showConfetti && (
-        <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={500} />
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={500}
+        />
       )}
     </div>
-  )
-}
+  );
+};
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-32">
     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
   </div>
-)
+);
 
 const AnimatedInput = ({ id, label, value, onChange, type }) => {
   const inputProps = useSpring({
     from: { opacity: 0, transform: "translateY(20px)" },
     to: { opacity: 1, transform: "translateY(0px)" },
     config: { tension: 300, friction: 10 },
-  })
+  });
 
   return (
     <animated.div style={inputProps} className="mb-4">
-      <label htmlFor={id} className="block text-sm font-medium text-blue-200 mb-2">
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium text-blue-200 mb-2"
+      >
         {label}
       </label>
       <input
@@ -269,8 +300,7 @@ const AnimatedInput = ({ id, label, value, onChange, type }) => {
         placeholder="Enter new price"
       />
     </animated.div>
-  )
-}
+  );
+};
 
-export default ResellTickets
-
+export default ResellTickets;
