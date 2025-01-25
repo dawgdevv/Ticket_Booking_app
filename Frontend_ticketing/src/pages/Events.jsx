@@ -1,75 +1,115 @@
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import CheckoutForm from "../pages/CheckoutForm.jsx";
-import Modal from "../pages/modal.jsx";
+import { motion, AnimatePresence } from "framer-motion";
+import CheckoutForm from "./CheckoutForm.jsx";
+import Modal from "./modal";
 import { jsPDF } from "jspdf";
-import { useState, useEffect } from "react";
+import EventCard from "../components/EventCard";
+import TicketDetails from "../components/TicketDetails";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
 );
 
 const Events = () => {
+  // State management
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [ticketDetails, setTicketDetails] = useState(null);
   const [userPublicKey, setUserPublicKey] = useState("");
-  const [showSolanaModal, setShowSolanaModal] = useState(false);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch events
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get("http://localhost:8000/events");
         setEvents(response.data);
+        setIsLoading(false);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching events:", error);
+        setIsLoading(false);
       }
     };
     fetchEvents();
   }, []);
 
+  // Handle seat selection
+  const handleSeatSelection = (seat) => {
+    setSelectedSeats((prev) =>
+      prev.includes(seat) ? prev.filter((s) => s !== seat) : [...prev, seat]
+    );
+  };
+
+  // Calculate total price
+  const calculateTotalPrice = () => {
+    if (!selectedEvent) return 0;
+    return selectedEvent.price * selectedSeats.length;
+  };
+
+  // Handle payment success
   const handlePaymentSuccess = async () => {
-    if (selectedEvent) {
-      try {
-        const payload = {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/tickets/book",
+        {
           eventId: selectedEvent._id,
-          quantity: 1,
-          seats: ["A1"],
-        };
-        console.log("Booking payload:", payload);
-        const response = await axios.post(
-          "http://localhost:8000/tickets/book",
-          { eventId: selectedEvent._id, quantity: 1, seats: ["A1"] },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        console.log("Booking response:", response.data);
-
-        setTicketDetails(response.data.ticket);
-        setIsModalOpen(true);
-      } catch (error) {
-        console.error("Booking failed:", error);
-        alert("Booking failed. Please try again.");
-      }
+          quantity: selectedSeats.length,
+          seats: selectedSeats,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setTicketDetails(response.data.ticket);
+      setIsPaymentModalOpen(false);
+    } catch (error) {
+      console.error("Booking failed:", error);
+      alert("Booking failed. Please try again.");
     }
   };
 
+  // Handle Solana payment
   const handleSolanaPayment = async () => {
-    if (selectedEvent && userPublicKey) {
-      try {
-        const response = await axios.post(
-          "http://localhost:8000/tickets/book-solana",
+    if (!selectedEvent || !userPublicKey) {
+      alert("Please enter your Solana public key.");
+      return;
+    }
+
+    try {
+      const amount = calculateTotalPrice(); // Get the total price
+
+      // First process the Solana payment
+      const paymentResponse = await axios.post(
+        "http://localhost:8000/payment/solana",
+        {
+          amount: amount,
+          userPublicKey: userPublicKey,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (paymentResponse.data.success) {
+        // If payment successful, create the ticket
+        const ticketResponse = await axios.post(
+          "http://localhost:8000/tickets/book",
           {
             eventId: selectedEvent._id,
-            quantity: 1,
-            seats: ["A1"],
-            userPublicKey,
+            quantity: selectedSeats.length,
+            seats: selectedSeats,
+            paymentSignature: paymentResponse.data.signature,
           },
           {
             headers: {
@@ -78,32 +118,23 @@ const Events = () => {
           }
         );
 
-        console.log("Booking response:", response.data);
-
-        setTicketDetails(response.data.ticket);
-        setIsModalOpen(true);
-      } catch (error) {
-        console.error("Booking failed:", error);
-        alert("Booking failed. Please try again.");
+        setTicketDetails(ticketResponse.data.ticket);
+        setIsPaymentModalOpen(false);
+        setPaymentMethod(null);
       }
-    } else {
-      alert("Please enter your Solana public key.");
+    } catch (error) {
+      console.error("Solana payment failed:", error);
+      alert(
+        error.response?.data?.message || "Payment failed. Please try again."
+      );
     }
   };
 
-  const handleSolanaModalOpen = (event) => {
-    setSelectedEvent(event);
-    setShowSolanaModal(true);
-  };
-
-  const handleSolanaModalClose = () => {
-    setShowSolanaModal(false);
-    setUserPublicKey("");
-  };
-
+  // Generate PDF ticket
   const generateTicketPDF = () => {
-    const doc = new jsPDF();
+    if (!ticketDetails) return;
 
+    const doc = new jsPDF();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(20);
     doc.text("🎟️ Ticket Details", 20, 20);
@@ -112,16 +143,15 @@ const Events = () => {
     doc.text(`Event: ${ticketDetails?.event?.name || "N/A"}`, 20, 40);
     doc.text(`Venue: ${ticketDetails?.venue || "N/A"}`, 20, 50);
     doc.text(`Seats: ${ticketDetails?.seats?.join(", ") || "N/A"}`, 20, 60);
-    doc.text(`Price: ${ticketDetails?.price || "N/A"}`, 20, 70);
+    doc.text(`Price: ${formatPrice(ticketDetails?.price) || "N/A"}`, 20, 70);
     doc.text(`Quantity: ${ticketDetails?.quantity || "N/A"}`, 20, 80);
     doc.text(`Ticket ID: ${ticketDetails?._id || "N/A"}`, 20, 90);
 
-    // Save the PDF
     doc.save(`${ticketDetails?._id}_ticket.pdf`);
-
     setTicketDetails(null);
   };
 
+  // Format price
   const formatPrice = (price) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -129,130 +159,159 @@ const Events = () => {
     }).format(price);
   };
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 text-center text-black">
-        Upcoming Events
-      </h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {events.map((event) => (
-          <div
-            key={event._id}
-            className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-            <img
-              src={event.image}
-              alt={event.name}
-              className="event-image mb-4 rounded-md"
-            />
-            <h2 className="text-2xl font-semibold mb-3 text-black">
-              {event.name}
-            </h2>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium text-gray-800">Date:</span>{" "}
-              {new Date(event.date).toLocaleDateString()}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium text-gray-800">Location:</span>{" "}
-              {event.location}
-            </p>
-            <p className="text-gray-600 mb-4">
-              <span className="font-medium text-gray-800">Price:</span>{" "}
-              {formatPrice(event.price)}
-            </p>
-            <div className="flex gap-2">
-              <button
-                className="w-1/2 bg-black text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300"
-                onClick={() => {
-                  setSelectedEvent(event);
-                  setIsModalOpen(true);
-                }}
-              >
-                Book with Card
-              </button>
-              <button
-                className="w-1/2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors duration-300"
-                onClick={() => handleSolanaModalOpen(event)}
-              >
-                Book with Solana
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+  // Render seat grid
+  const renderSeatGrid = () => {
+    const rows = 5;
+    const cols = 5;
+    const seats = [];
 
-      {/* Stripe Payment Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Elements stripe={stripePromise}>
-          <CheckoutForm
-            amount={selectedEvent?.price * 100}
-            onPaymentSuccess={handlePaymentSuccess}
-          />
-        </Elements>
-      </Modal>
-
-      {/* Solana Payment Modal */}
-      <Modal isOpen={showSolanaModal} onClose={handleSolanaModalClose}>
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Book with Solana</h2>
-          <div className="mb-4">
-            <p className="text-lg font-semibold">{selectedEvent?.name}</p>
-            <p className="text-gray-600">
-              Price: {formatPrice(selectedEvent?.price)}
-            </p>
-          </div>
-          <input
-            type="text"
-            placeholder="Enter your Solana public key"
-            value={userPublicKey}
-            onChange={(e) => setUserPublicKey(e.target.value)}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-          />
+    for (let row = 1; row <= rows; row++) {
+      for (let col = 1; col <= cols; col++) {
+        const seat = `${String.fromCharCode(64 + row)}${col}`;
+        seats.push(
           <button
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors duration-300"
-            onClick={handleSolanaPayment}
+            key={seat}
+            onClick={() => handleSeatSelection(seat)}
+            className={`seat w-16 h-16 mx-1 my-1 rounded-lg text-center font-bold transition-all duration-200 
+              ${
+                selectedSeats.includes(seat)
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-300 text-black"
+              } 
+              hover:bg-green-600`}
           >
-            Confirm Payment
+            {seat}
           </button>
+        );
+      }
+    }
+
+    return (
+      <div className="grid grid-cols-5 gap-4">
+        {seats}
+        <div className="col-span-5 text-center font-bold text-xl mt-4">
+          Total Price: {formatPrice(calculateTotalPrice())}
         </div>
-      </Modal>
+      </div>
+    );
+  };
 
-      {/* Ticket Details Modal */}
-      {ticketDetails && (
-        <Modal isOpen={true} onClose={() => setTicketDetails(null)}>
-          <div className="ticket-details p-6 bg-blue-50 rounded-lg shadow-lg">
-            <h2 className="text-3xl font-bold mb-4">🎟️ Ticket Details</h2>
-            <p className="mb-2">
-              <strong>Event:</strong> {ticketDetails?.event?.name || "N/A"}
-            </p>
-            <p className="mb-2">
-              <strong>Venue:</strong> {ticketDetails?.venue || "N/A"}
-            </p>
-            <p className="mb-2">
-              <strong>Seats:</strong>{" "}
-              {ticketDetails?.seats?.join(", ") || "N/A"}
-            </p>
-            <p className="mb-2">
-              <strong>Price:</strong>{" "}
-              {formatPrice(ticketDetails?.price) || "N/A"}
-            </p>
-            <p className="mb-2">
-              <strong>Quantity:</strong> {ticketDetails?.quantity || "N/A"}
-            </p>
-            <p className="mb-2">
-              <strong>Ticket ID:</strong> {ticketDetails?._id || "N/A"}
-            </p>
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-blue-100"
+    >
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-center text-amber-800">
+          Upcoming Events
+        </h1>
 
-            <button
-              onClick={generateTicketPDF}
-              className="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800 transition-colors duration-300"
-            >
-              Download Ticket PDF
-            </button>
+        {isLoading ? (
+          <div className="flex justify-center">
+            <div className="animate-spin h-12 w-12 border-4 border-amber-500 rounded-full border-t-transparent" />
           </div>
-        </Modal>
-      )}
-    </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <EventCard
+                key={event._id}
+                event={event}
+                onSelectSeats={() => {
+                  setSelectedEvent(event);
+                  setIsSeatModalOpen(true);
+                }}
+                formatPrice={formatPrice}
+              />
+            ))}
+          </div>
+        )}
+
+        <AnimatePresence>
+          {isSeatModalOpen && (
+            <Modal isOpen={true} onClose={() => setIsSeatModalOpen(false)}>
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-6">Select Your Seats</h2>
+                {renderSeatGrid()}
+                <button
+                  onClick={() => {
+                    setIsSeatModalOpen(false);
+                    setIsPaymentModalOpen(true);
+                  }}
+                  className="mt-6 w-full bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
+                >
+                  Continue to Payment
+                </button>
+              </div>
+            </Modal>
+          )}
+
+          {isPaymentModalOpen && (
+            <Modal isOpen={true} onClose={() => setIsPaymentModalOpen(false)}>
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-6">
+                  Choose Payment Method
+                </h2>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setPaymentMethod("stripe")}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 rounded-lg"
+                  >
+                    Pay with Card
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod("solana")}
+                    className="w-full bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-3 rounded-lg"
+                  >
+                    Pay with Solana
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          )}
+
+          {paymentMethod && (
+            <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
+              {paymentMethod === "stripe" ? (
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm
+                    amount={calculateTotalPrice() * 100}
+                    onPaymentSuccess={handlePaymentSuccess}
+                  />
+                </Elements>
+              ) : (
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold mb-4">Pay with Solana</h2>
+                  <input
+                    type="text"
+                    value={userPublicKey}
+                    onChange={(e) => setUserPublicKey(e.target.value)}
+                    placeholder="Enter your Solana public key"
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
+                  />
+                  <button
+                    onClick={handleSolanaPayment}
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded"
+                  >
+                    Complete Payment
+                  </button>
+                </div>
+              )}
+            </Modal>
+          )}
+
+          {ticketDetails && (
+            <Modal isOpen={true} onClose={() => setTicketDetails(null)}>
+              <TicketDetails
+                ticket={ticketDetails}
+                formatPrice={formatPrice}
+                onDownload={generateTicketPDF}
+              />
+            </Modal>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 

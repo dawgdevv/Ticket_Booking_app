@@ -17,22 +17,25 @@ const Auction = () => {
 
   const fetchAuctionItems = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/tickets/auctionitems", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const response = await axios.get(
+        "http://localhost:8000/tickets/auctionitems",
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
 
       // Filter out auctions with a winner or sold ticket
       const now = new Date();
       const ongoing = response.data.filter(
-        (item) => 
-          new Date(item.auctionEnd) > now && 
-          !item.isEnded && 
+        (item) =>
+          new Date(item.auctionEnd) > now &&
+          !item.isEnded &&
           !item.ticket.isSold
       );
-      
+
       const completed = response.data.filter(
-        (item) => 
-          (new Date(item.auctionEnd) <= now || item.isEnded) && 
+        (item) =>
+          (new Date(item.auctionEnd) <= now || item.isEnded) &&
           !item.ticket.isSold
       );
 
@@ -48,9 +51,11 @@ const Auction = () => {
       const response = await axios.post(
         `http://localhost:8000/auctionrooms/auction/${auctionId}/join`,
         {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
-      
+
       if (response.data.alreadyJoined) {
         setAlreadyJoinedAuction(auctionId);
       } else {
@@ -86,9 +91,13 @@ const Auction = () => {
       )}
 
       {/* Ongoing Auctions Section */}
-      <h1 className="text-3xl font-bold mb-8 text-center text-black">Ongoing Auctions</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center text-black">
+        Ongoing Auctions
+      </h1>
       {auctionItems.length === 0 ? (
-        <p className="text-center text-gray-500">No ongoing auctions at the moment</p>
+        <p className="text-center text-gray-500">
+          No ongoing auctions at the moment
+        </p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {auctionItems.map((item) => (
@@ -97,18 +106,22 @@ const Auction = () => {
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
               whileHover={{ scale: 1.05 }}
             >
-              <h2 className="text-xl font-semibold text-black mb-2">{item.ticket.event.name}</h2>
+              <h2 className="text-xl font-semibold text-black mb-2">
+                {item.ticket.event.name}
+              </h2>
               <p className="text-gray-700 mb-1">
                 <span className="font-medium">Starting Bid:</span>{" "}
-                {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
-                  item.startingBid
-                )}
+                {new Intl.NumberFormat("en-IN", {
+                  style: "currency",
+                  currency: "INR",
+                }).format(item.startingBid)}
               </p>
               <p className="text-gray-700">
                 <span className="font-medium">Highest Bid:</span>{" "}
-                {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
-                  item.highestBid
-                )}
+                {new Intl.NumberFormat("en-IN", {
+                  style: "currency",
+                  currency: "INR",
+                }).format(item.highestBid)}
               </p>
               <CountdownTimer endDate={item.auctionEnd} />
               <motion.button
@@ -127,19 +140,24 @@ const Auction = () => {
       {/* Completed Auctions Section */}
       {completedAuctions.length > 0 && (
         <>
-          <h1 className="text-3xl font-bold mt-12 mb-8 text-center text-black">Completed Auctions</h1>
+          <h1 className="text-3xl font-bold mt-12 mb-8 text-center text-black">
+            Completed Auctions
+          </h1>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {completedAuctions.map((item) => (
               <div
                 key={item._id}
                 className="bg-gray-100 p-6 rounded-lg shadow-md opacity-60"
               >
-                <h2 className="text-xl font-semibold text-black mb-2">{item.ticket.event.name}</h2>
+                <h2 className="text-xl font-semibold text-black mb-2">
+                  {item.ticket.event.name}
+                </h2>
                 <p className="text-gray-700 mb-1">
                   <span className="font-medium">Final Bid:</span>{" "}
-                  {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
-                    item.highestBid
-                  )}
+                  {new Intl.NumberFormat("en-IN", {
+                    style: "currency",
+                    currency: "INR",
+                  }).format(item.highestBid)}
                 </p>
                 <p className="text-gray-700 mb-1">
                   <span className="font-medium">Winner:</span>{" "}
