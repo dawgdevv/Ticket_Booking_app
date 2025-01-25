@@ -1,15 +1,17 @@
 import mongoose, { Schema } from "mongoose";
 
-const auctionTicketSchema = new Schema({
-	event: { type: Schema.Types.ObjectId, ref: "Event", required: true },
-	ticket: { type: Schema.Types.ObjectId, ref: "Ticket", required: true },
+const auctionTicketSchema = new mongoose.Schema({
+	event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
+	ticket: { type: mongoose.Schema.Types.ObjectId, ref: "Ticket", required: true },
 	seat: { type: String, required: true },
 	startingBid: { type: Number, required: true },
-	highestBid: { type: Number, default: 0 },
-	highestBidder: { type: Schema.Types.ObjectId, ref: "User" },
+	currentBid: { type: Number, default: 0 },
+	highestBidder: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 	auctionEnd: { type: Date, required: true },
-	organizer: { type: Schema.Types.ObjectId, ref: "User", required: true },
-});
+	organizer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+	participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // New field
+  });
+  
 
 const AuctionTicket = mongoose.model("AuctionTicket", auctionTicketSchema);
 export default AuctionTicket;

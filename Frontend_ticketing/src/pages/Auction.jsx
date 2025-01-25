@@ -1,84 +1,201 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Auction = () => {
   const [auctionItems, setAuctionItems] = useState([]);
-  const [bidAmount, setBidAmount] = useState("");
+  const [completedAuctions, setCompletedAuctions] = useState([]);
+  const [alreadyJoinedAuction, setAlreadyJoinedAuction] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAuctionItems = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/tickets/auctionitems",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setAuctionItems(response.data);
-      } catch (error) {
-        console.error("Error fetching auction items:", error);
-      }
-    };
-
     fetchAuctionItems();
+    const interval = setInterval(fetchAuctionItems, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  const handleBidChange = (e) => {
-    setBidAmount(e.target.value);
+  const fetchAuctionItems = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/tickets/auctionitems", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      // Filter out auctions with a winner or sold ticket
+      const now = new Date();
+      const ongoing = response.data.filter(
+        (item) => 
+          new Date(item.auctionEnd) > now && 
+          !item.isEnded && 
+          !item.ticket.isSold
+      );
+      
+      const completed = response.data.filter(
+        (item) => 
+          (new Date(item.auctionEnd) <= now || item.isEnded) && 
+          !item.ticket.isSold
+      );
+
+      setAuctionItems(ongoing);
+      setCompletedAuctions(completed);
+    } catch (error) {
+      console.error("Error fetching auction items:", error);
+    }
   };
 
-  const placeBid = (itemId) => {
-    const updatedItems = auctionItems.map((item) => {
-      if (item._id === itemId && parseFloat(bidAmount) > item.highestBid) {
-        return { ...item, highestBid: parseFloat(bidAmount) };
+  const joinAuction = async (auctionId) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/auctionrooms/auction/${auctionId}/join`,
+        {},
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      
+      if (response.data.alreadyJoined) {
+        setAlreadyJoinedAuction(auctionId);
+      } else {
+        navigate(`/auctionroom/${auctionId}`);
       }
-      return item;
-    });
-    setAuctionItems(updatedItems);
-    setBidAmount("");
+    } catch (error) {
+      console.error("Error joining auction:", error);
+      alert(error.response?.data?.message || "Failed to join the auction.");
+    }
+  };
+
+  const handleAlreadyJoinedAuction = () => {
+    if (alreadyJoinedAuction) {
+      navigate(`/auctionroom/${alreadyJoinedAuction}`);
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center text-black">
-        Auction for Premium Tickets
-      </h1>
-      <div className="grid gap-6 md:grid-cols-2">
-        {auctionItems.map((item) => (
-          <div key={item._id} className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-2">
-              {item.ticket.event.name}
-            </h2>
-            <p className="text-gray-600 mb-1">
-              <span className="font-medium">Date:</span>{" "}
-              {new Date(item.ticket.event.date).toLocaleDateString()}
-            </p>
-            <p className="text-gray-600 mb-1">
-              <span className="font-medium">Starting Bid:</span>
-              {item.startingBid}
-            </p>
-            <p className="text-gray-600 mb-4">
-              <span className="font-medium">Highest Bid:</span>
-              {item.highestBid}
-            </p>
-            <input
-              type="number"
-              value={bidAmount}
-              onChange={handleBidChange}
-              className="mb-2 w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your bid"
-            />
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      {alreadyJoinedAuction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl text-center">
+            <h2 className="text-2xl font-bold mb-4">Already Joined Auction</h2>
+            <p className="mb-6">You have already joined this auction.</p>
             <button
-              onClick={() => placeBid(item._id)}
-              className="w-full bg-black hover:bg-green-500 text-white py-2 rounded-md"
+              onClick={handleAlreadyJoinedAuction}
+              className="bg-amber-600 text-white py-2 px-6 rounded-md hover:bg-amber-700 transition-colors"
             >
-              Place Bid
+              Let's Bid
             </button>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Ongoing Auctions Section */}
+      <h1 className="text-3xl font-bold mb-8 text-center text-black">Ongoing Auctions</h1>
+      {auctionItems.length === 0 ? (
+        <p className="text-center text-gray-500">No ongoing auctions at the moment</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {auctionItems.map((item) => (
+            <motion.div
+              key={item._id}
+              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+            >
+              <h2 className="text-xl font-semibold text-black mb-2">{item.ticket.event.name}</h2>
+              <p className="text-gray-700 mb-1">
+                <span className="font-medium">Starting Bid:</span>{" "}
+                {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
+                  item.startingBid
+                )}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-medium">Highest Bid:</span>{" "}
+                {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
+                  item.highestBid
+                )}
+              </p>
+              <CountdownTimer endDate={item.auctionEnd} />
+              <motion.button
+                onClick={() => joinAuction(item._id)}
+                className="mt-4 w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition-colors duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Join Auction
+              </motion.button>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Completed Auctions Section */}
+      {completedAuctions.length > 0 && (
+        <>
+          <h1 className="text-3xl font-bold mt-12 mb-8 text-center text-black">Completed Auctions</h1>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {completedAuctions.map((item) => (
+              <div
+                key={item._id}
+                className="bg-gray-100 p-6 rounded-lg shadow-md opacity-60"
+              >
+                <h2 className="text-xl font-semibold text-black mb-2">{item.ticket.event.name}</h2>
+                <p className="text-gray-700 mb-1">
+                  <span className="font-medium">Final Bid:</span>{" "}
+                  {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
+                    item.highestBid
+                  )}
+                </p>
+                <p className="text-gray-700 mb-1">
+                  <span className="font-medium">Winner:</span>{" "}
+                  {item.highestBidder?.username || "No winner"}
+                </p>
+                <p className="text-red-500">Auction Closed</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const CountdownTimer = ({ endDate }) => {
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  function calculateTimeLeft() {
+    const difference = +new Date(endDate) - +new Date();
+    if (difference <= 0) return null;
+
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      min: Math.floor((difference / 1000 / 60) % 60),
+      sec: Math.floor((difference / 1000) % 60),
+    };
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  });
+
+  if (!timeLeft) {
+    return <p className="text-red-500">Auction has ended</p>;
+  }
+
+  return (
+    <div className="mt-2 grid grid-cols-4 gap-2 text-center">
+      {Object.entries(timeLeft).map(([unit, value]) => (
+        <motion.div
+          key={unit}
+          className="bg-amber-200 p-2 rounded-md"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="text-xl font-bold text-amber-800">{value}</span>
+          <span className="text-xs text-amber-700">{unit}</span>
+        </motion.div>
+      ))}
     </div>
   );
 };

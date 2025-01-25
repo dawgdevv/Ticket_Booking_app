@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
 	"name": "server",
 	"version": "1.0.0",
@@ -28,3 +29,36 @@
 		"stripe": "^17.3.1"
 	}
 }
+=======
+{
+	"name": "server",
+	"version": "1.0.0",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"dev": "nodemon src/index.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"@google/generative-ai": "^0.21.0",
+		"@solana/spl-token": "^0.4.9",
+		"@solana/web3.js": "^1.98.0",
+		"bcrypt": "^5.1.1",
+		"cors": "^2.8.5",
+		"dotenv": "^16.4.5",
+		"express": "^4.21.1",
+		"express-session": "^1.18.1",
+		"joi": "^17.13.3",
+		"jsonwebtoken": "^9.0.2",
+		"mongodb": "^6.10.0",
+		"mongoose": "^8.7.3",
+		"prettier": "^3.3.3",
+		"server": "file:",
+		"socket.io": "^4.8.1",
+		"stripe": "^17.3.1"
+	}
+}
+>>>>>>> 21314f2 (Refactor code formatting and add new routes for auction functionality)

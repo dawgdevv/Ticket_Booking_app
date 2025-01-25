@@ -1,61 +1,346 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
+import axios from "axios"
+import { getIndianCities } from "../utils/GoogleMapsAPI"
+import { motion, AnimatePresence } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 
 const Home = () => {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([])
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [cities, setCities] = useState([])
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    setIsAuthenticated(!!token)
+  }, [])
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/events");
-        setEvents(response.data);
+        const response = await axios.get("http://localhost:8000/events")
+        setEvents(response.data)
       } catch (error) {
-        console.error(error);
+        console.error(error)
       }
-    };
-    fetchEvents();
-  }, []);
+    }
+    fetchEvents()
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev === events.length - 1 ? 0 : prev + 1))
+    }, 3000)
+
+    return () => clearInterval(timer)
+  }, [events.length])
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      const indianCities = await getIndianCities()
+      setCities(indianCities)
+    }
+    fetchCities()
+  }, [])
+
+  const handleEventClick = (event) => {
+    if (isAuthenticated) {
+      setSelectedEvent(event)
+    } else {
+      navigate("/login")
+    }
+  }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-6 text-center text-primary">
-        Welcome to Event Ticket Booking
-      </h1>
-      <p className="text-lg text-center mb-8 text-muted-foreground">
-        Find and book tickets for your favorite events!
-      </p>
-      <div className="bg-primary/10 p-6 bg-gray-300 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-semibold mb-4 text-primary">
-          Featured Events
-        </h2>
-        <ul className="space-y-6">
-          {events.map((event) => (
-            <li
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-blue-100"
+    >
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center h-16 justify-between">
+            {/* Search Bar */}
+            <div className="flex-1 max-w-2xl mx-4">
+              <input
+                type="text"
+                placeholder="Search for Events, Plays, Sports and Activities"
+                className="w-full px-4 py-2 bg-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            {/* Location Selector */}
+            <div className="flex items-center gap-2">
+              <select className="bg-transparent text-sm">
+                <option>Select Location</option>
+                {cities.map((city) => (
+                  <option key={city.name} value={city.name}>
+                    {city.name}, {city.state}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex items-center gap-8 h-12 text-sm border-t">
+            <a href="#" className="hover:text-red-500">Movies</a>
+            <a href="#" className="hover:text-red-500">Events</a>
+            <a href="#" className="hover:text-red-500">Plays</a>
+            <a href="#" className="hover:text-red-500">Sports</a>
+            <a href="#" className="hover:text-red-500">Activities</a>
+          </nav>
+        </div>
+      </header>
+
+      {/* Carousel */}
+      <div className="relative">
+        <div className="w-full h-[400px] relative overflow-hidden">
+          {events.map((event, index) => (
+            <div
               key={event._id}
-              className="bg-background p-4 rounded-md shadow transition-all hover:shadow-md"
+              className={`absolute inset-0 transition-all duration-700 transform ${index === currentSlide ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+                }`}
             >
-              <h3 className="text-xl font-semibold mb-2 text-primary">
-                {event.name}
-              </h3>
-              <p className="text-muted-foreground">
-                <span className="font-medium">Date:</span>{" "}
+              <img
+                src={event.image || "/placeholder.svg?height=400&width=1200"}
+                alt={event.name || "Event"}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
+                <h2 className="text-3xl font-bold mb-2">{event.name}</h2>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center">
+                    <svg
+                      className="w-5 h-5 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className="text-sm">
+                      {new Date(event.date).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <svg
+                      className="w-5 h-5 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span className="text-sm">{event.location}</span>
+                  </div>
+                </div>
+                <button
+                  className="mt-4 bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors duration-300"
+                  onClick={() => setSelectedEvent(event)}
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Slide indicators */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {events.map((_, index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentSlide ? "bg-white w-4" : "bg-white/50"
+                }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Events Section */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1
+            }
+          }
+        }}
+        className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6"
+      >
+        {events.map((event) => (
+          <motion.div
+            key={event._id}
+            variants={{
+              hidden: { y: 20, opacity: 0 },
+              visible: { y: 0, opacity: 1 }
+            }}
+            className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleEventClick(event)}
+          >
+            <div className="aspect-[3/4] relative bg-gray-200">
+              {event.image ? (
+                <img
+                  src={event.image || "/placeholder.svg"}
+                  alt={event.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src="/placeholder.svg?height=400&width=300"
+                  alt="Event placeholder"
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+            <div className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{event.name}</h3>
+              <p className="text-sm text-gray-600 mb-1">
                 {new Date(event.date).toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "long",
+                  month: "short",
                   day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
                 })}
               </p>
-              <p className="text-muted-foreground">
-                <span className="font-medium">Location:</span> {event.location}
-              </p>
-            </li>
+              <p className="text-xs text-gray-500 line-clamp-1">{event.location}</p>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Entertainment Categories */}
+      <div>
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">The Best of Entertainment</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+          {["Movies", "Concerts", "Comedy", "Sports", "Theatre", "Music", "Dance", "Others"].map((category) => (
+            <div
+              key={category}
+              className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-300 cursor-pointer"
+            >
+              <span className="text-sm font-medium">{category}</span>
+            </div>
           ))}
-        </ul>
+        </div>
+      </div>
+
+      {/* Trending Events */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Trending Near You</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {events.map((event) => (
+            <div
+              key={event._id}
+              className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div className="aspect-[3/4] relative bg-gray-200">
+                <img
+                  src={event.image || "/placeholder.svg"}
+                  alt={event.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{event.name}</h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  {new Date(event.date).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </p>
+                <p className="text-xs text-gray-500 line-clamp-1">{event.location}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  );
-};
+   ;<AnimatePresence>
+    {selectedEvent && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6"
+        >
+          <button
+            className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+            onClick={() => setSelectedEvent(null)}
+          >
+            &times;
+          </button>
+          <div className="flex items-center space-x-4">
+            <img
+              src={selectedEvent.image || "/placeholder.svg?height=400&width=300"}
+              alt={selectedEvent.name}
+              className="w-24 h-24 object-cover rounded-lg"
+            />
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-1">{selectedEvent.name}</h3>
+              <p className="text-sm text-gray-600 mb-1">
+                {new Date(selectedEvent.date).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+              <p className="text-xs text-gray-500">{selectedEvent.location}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="text-gray-800">{selectedEvent.description}</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-4 w-full bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 transition-colors duration-300"
+            onClick={() => navigate(`/events/${selectedEvent._id}`)}
+          >
+            Buy Tickets
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+  </motion.div >
+  )
+}
 
-export default Home;
+export default Home
+

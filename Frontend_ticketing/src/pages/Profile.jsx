@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const [user, setUser] = useState({
@@ -7,6 +8,7 @@ function Profile() {
     email: "",
   });
   const [activeTab, setActiveTab] = useState("profile");
+  const navigate = useNavigate();
 
   useEffect(() => {
     try {
@@ -28,7 +30,7 @@ function Profile() {
     try {
       await axios.post("http://localhost:8000/auth/logout");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+      navigate("/login"); // Redirect to the login page after logout
     } catch (error) {
       console.error("Error logging out:", error);
     }
