@@ -309,3 +309,31 @@ export const getAuctionItems = async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 };
+
+export const placeBid = async (req, res) => {
+	const { auctionId, bidAmount } = req.body;
+	const userId = req.user.id;
+
+	try {
+		const auction = await AuctionTicket.findById(auctionId);
+		if (!auction) {
+			return res.status(404).json({ message: "Auction not found" });
+		}
+
+		// Check if the bid is higher than the current highest bid
+		if (bidAmount <= auction.currentBid) {
+			return res
+				.status(400)
+				.json({ message: "Bid amount must be higher than the current bid" });
+		}
+
+		// Update the auction with the new highest bid
+		auction.currentBid = bidAmount;
+		auction.highestBidder = userId;
+		await auction.save();
+
+		res.status(200).json({ message: "Bid placed successfully", auction });
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
