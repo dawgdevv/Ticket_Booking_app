@@ -3,7 +3,7 @@ import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import Modal from "../pages/modal.jsx";
-import CheckoutForm from "../pages/checkoutform.jsx";
+import CheckoutForm from "../pages/CheckoutForm.jsx";
 
 const stripePromise = loadStripe("your_stripe_public_key");
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import CheckoutForm from "../pages/checkoutform.jsx";
+import CheckoutForm from "../pages/CheckoutForm.jsx";
 import Modal from "../pages/modal.jsx";
 import { jsPDF } from "jspdf";
 import { useState, useEffect } from "react";
