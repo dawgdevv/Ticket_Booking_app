@@ -42,17 +42,23 @@ const Navbar = () => {
                   Marketplace
                 </Link>
                 <Link
+                  to="/organize-auction"
+                  className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {" "}
+                  Organize Auction{" "}
+                </Link>
+                <Link
                   to="/auction"
                   className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Auction
                 </Link>
                 <Link
-                  to="/organize-auction"
+                  to="/search"
                   className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  {" "}
-                  Organize Auction{" "}
+                  Search
                 </Link>
               </div>
             </div>

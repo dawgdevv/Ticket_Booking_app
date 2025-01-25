@@ -9,6 +9,7 @@ import {
 	bookTicketWithSolana,
 	buyResellTicketWithSolana,
 } from "../controllers/ticket.controller.js";
+import { getEventInfo } from "../utils/ai.service.js";
 import { authenticateUser } from "../middlewares/auth.js";
 
 const router = express.Router();

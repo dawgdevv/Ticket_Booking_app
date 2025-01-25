@@ -1,9 +1,12 @@
-import mongoose from "mongoose";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
-import Event from "../models/events.model.js";
 
 dotenv.config();
-const Events = [
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const events = [
 	{
 		name: "Jaipur Literature Festival",
 		date: new Date("2025-01-25"),
@@ -302,22 +305,49 @@ const Events = [
 	},
 ];
 
-const seedEvents = async () => {
+function getEventDetails(eventName = "") {
+	const event = events.find((e) =>
+		e.name.toLowerCase().includes(eventName.toLowerCase())
+	);
+	return event ? event : { message: "Event not found" };
+}
+
+export const getEventInfo = async (query) => {
 	try {
-		await mongoose.connect(
-			"mongodb+srv://nishantraj:nishant24@cluster0.0p0yq.mongodb.net/auth_db?retryWrites=true&w=majority",
-			{}
+		const prompt = `You are a helpful event assistant. Please help with the following query about events: ${query}
+    
+Available events:
+${events.map((event) => `- ${event.name}: ${event.description}`).join("\n")}
+
+If asked about specific event details, I'll provide them.`;
+
+		const result = await model.generateContent(prompt);
+		const response = result.response.text();
+
+		// Check if response mentions any event name
+		const eventMentioned = events.some((event) =>
+			query.toLowerCase().includes(event.name.toLowerCase())
 		);
 
-		await Event.deleteMany();
-		await Event.insertMany(Events);
+		if (eventMentioned) {
+			const event = events.find((event) =>
+				query.toLowerCase().includes(event.name.toLowerCase())
+			);
 
-		console.log("Events seeded successfully");
-		process.exit();
+			if (event) {
+				return {
+					answer: response,
+					eventDetails: event,
+				};
+			}
+		}
+
+		return {
+			answer: response,
+			eventDetails: null,
+		};
 	} catch (error) {
-		console.error("Error seeding events", error);
-		process.exit(1);
+		console.error("Error in getEventInfo:", error);
+		throw error;
 	}
 };
-
-seedEvents();

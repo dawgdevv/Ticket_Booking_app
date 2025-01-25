@@ -10,6 +10,7 @@ import ResellTickets from "./pages/Resell";
 import TicketMarketplace from "./pages/Marketplace";
 import Auction from "./pages/Auction";
 import OrganizeAuction from "./pages/Organizauction";
+import Search from "./pages/Search";
 
 function App() {
   return (
@@ -31,8 +32,9 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/resell" element={<ResellTickets />} />
               <Route path="/marketplace" element={<TicketMarketplace />} />
-              <Route path="/auction" element={<Auction />} />
               <Route path="/organize-auction" element={<OrganizeAuction />} />
+              <Route path="/auction" element={<Auction />} />
+              <Route path="/search" element={<Search />} />
             </Routes>
           </main>
           <footer className="py-4 text-center text-gray-900 bg-opacity-30 backdrop-blur-sm">

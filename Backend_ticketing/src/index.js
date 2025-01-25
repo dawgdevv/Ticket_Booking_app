@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import eventRoutes from "./routes/event.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use("/auth", userRoutes);
 app.use("/events", eventRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/tickets", ticketRoutes);
+app.use("/ai", aiRoutes);
 
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
