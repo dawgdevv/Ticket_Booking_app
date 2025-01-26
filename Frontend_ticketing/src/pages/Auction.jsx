@@ -19,7 +19,7 @@ const Auction = () => {
   const fetchAuctionItems = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/tickets/auctionitems",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auctionitems",
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -50,7 +50,7 @@ const Auction = () => {
   const joinAuction = async (auctionId) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/auctionrooms/auction/${auctionId}/join`,
+        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auction/${auctionId}/join`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

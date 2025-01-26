@@ -11,7 +11,7 @@ const Search = () => {
   const fetchEventInfo = async (query) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/ai/event-info",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/ai/event-info",
         { query },
         {
           headers: {

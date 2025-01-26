@@ -15,4 +15,13 @@ export default defineConfig({
       "@": path.resolve(path.dirname(new URL(import.meta.url).pathname), "src"), // Add this line to resolve the alias
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://dtix-backend-7f609a0e60c3.herokuapp.com/",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 });

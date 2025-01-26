@@ -28,7 +28,7 @@ const TicketMarketplace = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          "http://localhost:8000/tickets/marketplace",
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/marketplace",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -55,7 +55,7 @@ const TicketMarketplace = () => {
   const handlePaymentSuccess = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/tickets/purchase",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/purchase",
         { resellTicketId: selectedTicket._id },
         {
           headers: {
@@ -88,7 +88,7 @@ const TicketMarketplace = () => {
       const amount = selectedTicket.price;
 
       const paymentResponse = await axios.post(
-        "http://localhost:8000/payment/solana",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/payment/solana",
         {
           amount,
           userPublicKey,
@@ -102,7 +102,7 @@ const TicketMarketplace = () => {
 
       if (paymentResponse.data.success) {
         const purchaseResponse = await axios.post(
-          "http://localhost:8000/tickets/purchase-solana",
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/purchase-solana",
           {
             resellTicketId: selectedTicket._id,
             userPublicKey,

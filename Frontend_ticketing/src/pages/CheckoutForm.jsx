@@ -31,7 +31,7 @@ const CheckoutForm = ({ amount, onPaymentSuccess }) => {
     const createPaymentIntent = async () => {
       try {
         const response = await axios.post(
-          "http://localhost:8000/payment/create-payment-intent",
+          "/payment/create-payment-intent",
           { amount },
           {
             headers: {

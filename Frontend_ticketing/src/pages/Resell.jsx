@@ -57,7 +57,7 @@ const ResellTickets = () => {
     if (selectedTicket && resellPrice) {
       try {
         await axios.post(
-          "http://localhost:8000/tickets/resell",
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/resell",
           { ticketId: selectedTicket._id, price: resellPrice },
           {
             headers: {

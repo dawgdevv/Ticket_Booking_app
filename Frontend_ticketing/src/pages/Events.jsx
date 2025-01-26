@@ -30,7 +30,9 @@ const Events = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/events");
+        const response = await axios.get(
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/events"
+        );
         setEvents(response.data);
         setIsLoading(false);
       } catch (error) {
@@ -58,7 +60,7 @@ const Events = () => {
   const handlePaymentSuccess = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/tickets/book",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/book",
         {
           eventId: selectedEvent._id,
           quantity: selectedSeats.length,
@@ -90,7 +92,7 @@ const Events = () => {
 
       // First process the Solana payment
       const paymentResponse = await axios.post(
-        "http://localhost:8000/payment/solana",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/payment/solana",
         {
           amount: amount,
           userPublicKey: userPublicKey,
@@ -105,7 +107,7 @@ const Events = () => {
       if (paymentResponse.data.success) {
         // If payment successful, create the ticket
         const ticketResponse = await axios.post(
-          "http://localhost:8000/tickets/book",
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/book",
           {
             eventId: selectedEvent._id,
             quantity: selectedSeats.length,

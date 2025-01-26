@@ -14,11 +14,14 @@ function Profile() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/auth/profile", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const response = await axios.get(
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -35,7 +38,7 @@ function Profile() {
       }
 
       const response = await axios.get(
-        "http://localhost:8000/tickets/auction-won-tickets",
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auction-won-tickets",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,7 +61,9 @@ function Profile() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:8000/auth/logout");
+      await axios.post(
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/logout"
+      );
       localStorage.removeItem("token");
       navigate("/login");
     } catch (error) {

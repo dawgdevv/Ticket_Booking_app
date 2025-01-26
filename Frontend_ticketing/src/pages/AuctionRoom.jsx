@@ -218,7 +218,7 @@ const AuctionRoom = () => {
   const handlePaymentSuccess = async (txHash, method) => {
     try {
       await axios.post(
-        `http://localhost:8000/auctions/${auctionId}/complete`,
+        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctions/${auctionId}/complete`,
         {
           txHash,
           paymentMethod: method,
