@@ -20,7 +20,7 @@ const AuctionRoom = () => {
   const [socket, setSocket] = useState(null);
   const [auctionDetails, setAuctionDetails] = useState(null);
   const [highestBid, setHighestBid] = useState(0);
-  const [highestBidderName, setHighestBidderName] = useState(null);
+  const [highestBidderName, setHighestBidderName] = useState("No bids yet");
   const [participantsCount, setParticipantsCount] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(30);
@@ -70,7 +70,9 @@ const AuctionRoom = () => {
   }, [auctionId]);
 
   useEffect(() => {
-    const newSocket = io("https://dtix-backend-7f609a0e60c3.herokuapp.com");
+    const newSocket = io("https://dtix-backend-7f609a0e60c3.herokuapp.com", {
+      transports: ["websocket", "polling"],
+    });
     setSocket(newSocket);
 
     const storedUserId = localStorage.getItem("userId");
