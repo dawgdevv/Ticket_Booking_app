@@ -15,6 +15,12 @@ export default defineConfig({
       "@": path.resolve(path.dirname(new URL(import.meta.url).pathname), "src"), // Add this line to resolve the alias
     },
   },
+  optimizeDeps: {
+    esbuildOptions: { target: "es2020" },
+  },
+  build: {
+    target: "es2020",
+  },
   server: {
     proxy: {
       "/api": {
