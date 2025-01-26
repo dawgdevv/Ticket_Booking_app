@@ -34,31 +34,17 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
-      "@components": path.resolve(__dirname, "src/components"),
-      "@pages": path.resolve(__dirname, "src/pages"),
-      "@services": path.resolve(__dirname, "src/services"),
+    },
+  },
+
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "es2020",
     },
   },
 
   build: {
+    target: "es2020",
     outDir: "dist",
-    assetsDir: "assets",
-    sourcemap: true,
-    minify: "terser",
-    target: "es2018",
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          utils: ["axios"],
-        },
-      },
-    },
-  },
-
-  define: {
-    "process.env.VITE_BACKEND_URL": JSON.stringify(
-      process.env.VITE_BACKEND_URL
-    ),
   },
 });
