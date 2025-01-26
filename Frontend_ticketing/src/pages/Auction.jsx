@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import PropType from "prop-types";
 
 const Auction = () => {
   const [auctionItems, setAuctionItems] = useState([]);
@@ -84,7 +85,7 @@ const Auction = () => {
               onClick={handleAlreadyJoinedAuction}
               className="bg-amber-600 text-white py-2 px-6 rounded-md hover:bg-amber-700 transition-colors"
             >
-              Let's Bid
+              Let&apos;s Bid
             </button>
           </div>
         </div>
@@ -216,6 +217,10 @@ const CountdownTimer = ({ endDate }) => {
       ))}
     </div>
   );
+};
+
+CountdownTimer.propTypes = {
+  endDate: PropType.string.isRequired,
 };
 
 export default Auction;

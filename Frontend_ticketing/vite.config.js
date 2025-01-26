@@ -5,6 +5,7 @@ import path from "path"; // Add this line to import the path module
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+
   open: true,
   css: {
     postcss: "./postcss.config.js",

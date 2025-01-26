@@ -5,300 +5,198 @@ import Event from "../models/events.model.js";
 dotenv.config();
 const Events = [
 	{
-		name: "Jaipur Literature Festival",
-		date: new Date("2025-01-25"),
-		location: "Jaipur, Rajasthan, India",
+		name: "Joji: Nectar World Tour",
+		date: new Date("2025-03-20"),
+		location: "Madison Square Garden, New York, USA",
 		description:
-			"An annual literary extravaganza bringing together authors, thinkers, and readers from around the world.",
-		price: 500,
-		image:
-			"https://indiaholidaymall.com/images/blog/Jaipur-Literature-Festival.jpg",
+			"The soulful genius Joji performs his iconic tracks from the 'Nectar' album live for a global audience.",
+		price: 2500, // Price in local currency
+		image: "https://images2.alphacoders.com/109/1098560.jpg",
 	},
 	{
-		name: "Rajasthan International Folk Festival",
-		date: new Date("2025-10-01"),
-		location: "Mehrangarh Fort, Jaipur, Rajasthan, India",
+		name: "Travis Scott: UTOPIA Carnival",
+		date: new Date("2025-04-15"),
+		location: "NRG Stadium, Houston, Texas, USA",
 		description:
-			"A celebration of Rajasthani and global folk music in the stunning backdrop of Mehrangarh Fort.",
-		price: 1000,
-		image:
-			"https://www.travel-rajasthan.com/images/experiance-in-rajsthan/fairs-festivals/rajasthan-international-folk-festival.jpg",
+			"A high-energy carnival headlined by Travis Scott featuring wild stage setups, rides, and the UTOPIA album live.",
+		price: 4000,
+		image: "https://wallpaperaccess.com/full/2110678.jpg",
 	},
 	{
-		name: "Jaipur Tech Expo",
-		date: new Date("2025-03-15"),
-		location:
-			"Jaipur Exhibition and Convention Center, Jaipur, Rajasthan, India",
+		name: "Kanye West: Yeezus Resurrection",
+		date: new Date("2025-05-10"),
+		location: "O2 Arena, London, UK",
 		description:
-			"A tech event showcasing the latest innovations in software, hardware, and emerging technologies.",
-		price: 1500,
-		image:
-			"https://www.motownindia.com/images/Auto-Industry/Ground-breaking-innovations-unveiled-as-TrafficInfraTech-Expo-opens-its-doors-Motown-India-Bureau-2-3511.jpg",
-	},
-	{
-		name: "Pink City Food Carnival",
-		date: new Date("2025-04-05"),
-		location: "Central Park, Jaipur, Rajasthan, India",
-		description:
-			"A culinary festival celebrating diverse food cultures with top chefs and local cuisine.",
-		price: 200,
-		image:
-			"https://static.tripzilla.in/media/55293/conversions/9536682d-94e3-4e08-9e9b-3175a5231c6f-w768.webp",
-	},
-	{
-		name: "Jaipur Art and Craft Fair",
-		date: new Date("2025-07-20"),
-		location: "Jawahar Kala Kendra, Jaipur, Rajasthan, India",
-		description:
-			"An art fair promoting traditional Rajasthani crafts and modern art, with exhibitions and live art demos.",
-		price: 300,
-		image:
-			"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmKPS56f9w-54FjJw-mMlKxI3h_gP1xBQgAA&s",
-	},
-	{
-		name: "Desert Rock Music Fest",
-		date: new Date("2025-11-18"),
-		location: "Jaipur Polo Grounds, Jaipur, Rajasthan, India",
-		description:
-			"A rock music festival featuring live performances by popular bands and indie musicians from India.",
-		price: 800,
-		image: "https://festup.in/wp-content/uploads/2024/01/image-174.png",
-	},
-	{
-		name: "Jaipur International Film Festival",
-		date: new Date("2025-02-01"),
-		location: "Inox Crystal Palm, Jaipur, Rajasthan, India",
-		description:
-			"A film festival showcasing cinema from around the world, with screenings, panel discussions, and workshops.",
-		price: 1200,
-		image: "https://www.jiffindia.org/documents/HOME-3.jpg",
-	},
-	{
-		name: "Bangalore EDM Carnival",
-		date: new Date("2025-03-30"),
-		location: "Lalbagh Gardens, Bangalore, India",
-		description:
-			"Get wasted while vibing to the world's sickest DJs dropping bass so heavy it'll rearrange your brain cells.",
-		price: 2000,
-		image:
-			"https://res.cloudinary.com/https-highape-com/image/upload/q_auto:eco,f_auto,h_380/v1729717589/cfii4oeggv03sshaxdpj.png",
-	},
-	{
-		name: "Chennai Reggae Bash",
-		date: new Date("2025-05-15"),
-		location: "Elliot's Beach, Chennai, India",
-		description:
-			"Feel the beat, smoke the vibe, and party under the stars at India’s ultimate reggae beach festival.",
-		price: 1200,
-		image: "https://i.ytimg.com/vi/J_xcycjomuA/maxresdefault.jpg",
-	},
-	{
-		name: "Mumbai Neon Party Cruise",
-		date: new Date("2025-08-22"),
-		location: "Gateway of India, Mumbai, India",
-		description:
-			"A lit AF neon-themed cruise party with DJs, booze, and a view to die for. Come dressed to glow!",
+			"The man, the myth, the controversy—Kanye West performs his greatest hits with visuals to blow your mind.",
 		price: 5000,
 		image:
-			"https://www.travelandtourworld.com/wp-content/uploads/2023/12/luxurious-cruise-1.jpg",
+			"https://wallpapers.com/images/hd/kanye-west-ye-2560-x-1440-yrktxaqotpzswru6.jpg",
 	},
 	{
-		name: "Pune Psytrance Madness",
-		date: new Date("2025-09-09"),
-		location: "Near Mulshi Lake, Pune, India",
+		name: "Tomorrowland 2025",
+		date: new Date("2025-07-18"),
+		location: "Boom, Belgium",
 		description:
-			"An outdoor psytrance rave in the heart of nature. Lose your mind to insane visuals and trippy beats.",
-		price: 1800,
+			"The ultimate electronic dance music festival featuring Tiësto, Martin Garrix, Armin van Buuren, and more.",
+		price: 6000,
 		image:
-			"https://i0.wp.com/picjumbo.com/wp-content/uploads/party-dj-in-dance-music-club-free-photo.jpg?w=2210&quality=70",
+			"https://wallpapers.com/images/high/tomorrowland-the-circus-rwvlx7esm8punaxr.webp",
 	},
 	{
-		name: "K-Pop Universe India",
-		date: new Date("2025-07-03"),
-		location: "Indira Gandhi Indoor Stadium, Delhi, India",
+		name: "Sabrina Carpenter World Tour",
+		date: new Date("2025-09-15"),
+		location: "Los Angeles, United States",
 		description:
-			"A K-Pop fan's dream event with live performances, cosplay contests, and dance-off battles. Annyeonghaseyo!",
-		price: 3500,
-		image:
-			"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIJkrJkI7FlKe5wo_YG3QRDw07zVoD6cQgIA&s",
-	},
-	{
-		name: "Kerala Carnival of Color",
-		date: new Date("2025-12-20"),
-		location: "Alleppey Backwaters, Kerala, India",
-		description:
-			"A vibrant festival where the backwaters explode with colors, music, and street parades.",
-		price: 1500,
-		image:
-			"https://miro.medium.com/v2/resize:fit:1200/1*F0GkpLiuaxwntEM9APAHDw.jpeg",
-	},
-	{
-		name: "Travis Scott's Desert Rager",
-		date: new Date("2025-11-10"),
-		location: "Thar Desert, Rajasthan, India",
-		description:
-			"Rage in the sands with Cactus Jack himself. Mind-blowing visuals, explosive beats, and an unforgettable night.",
-		price: 8000,
-		image:
-			"https://i0.wp.com/ballerstatus.com/wp-content/uploads/2024/11/01.jpg?fit=2000%2C1200&ssl=1",
-	},
-	{
-		name: "Nagaland Hornbill Festival",
-		date: new Date("2025-12-01"),
-		location: "Kisama Heritage Village, Nagaland, India",
-		description:
-			"Experience Nagaland's incredible tribal culture, music, and dance at the festival of festivals.",
-		price: 1000,
-		image:
-			"https://th-i.thgim.com/public/incoming/m2l1u9/article67557173.ece/alternates/LANDSCAPE_1200/10_SM_naga_tribe.jpg",
-	},
-	{
-		name: "Goa Carnival of Chaos",
-		date: new Date("2025-02-10"),
-		location: "Panaji, Goa, India",
-		description:
-			"Parades, masks, parties, and mayhem. Celebrate Goa like a local at this old-school carnival.",
-		price: 1000,
-		image:
-			"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRP8wEdbKlUEoWUbAPPKDUZCz_uB3Dk4a5Qrg&s",
-	},
-	{
-		name: "Hyderabad Comic Con",
-		date: new Date("2025-09-25"),
-		location: "Hitex Exhibition Center, Hyderabad, India",
-		description:
-			"Geek out at the biggest comic convention in India with celebrity guests, exclusive merch, and epic cosplay.",
-		price: 1500,
-		image:
-			"https://hyderabadmail.com/wp-content/uploads/2024/11/Untitled-design-2024-11-07T161841.568.jpg",
-	},
-	{
-		name: "Delhi Salsa Congress",
-		date: new Date("2025-08-14"),
-		location: "The Leela Ambience, Delhi, India",
-		description:
-			"Feel the heat with international salsa dancers, workshops, and sizzling performances that'll set the floor on fire.",
-		price: 3000,
-		image:
-			"https://imgstaticcontent.lbb.in/lbbnew/wp-content/uploads/2018/01/09213208/TheSwingers1-600x400.jpg",
-	},
-	{
-		name: "Sunburn Goa",
-		date: new Date("2025-12-29"),
-		location: "Vagator Beach, Goa, India",
-		description:
-			"Asia's biggest EDM festival. Lose yourself in world-class beats, beach vibes, and unforgettable experiences.",
-		price: 4500,
-		image:
-			"https://sundaysforever-bucket.s3.ap-south-1.amazonaws.com/1700637033164.webp",
-	},
-	{
-		name: "Spiti Valley Adventure Festival",
-		date: new Date("2025-08-20"),
-		location: "Spiti Valley, Himachal Pradesh, India",
-		description:
-			"A rugged adventure fest in the high-altitude deserts of Spiti. Think trekking, rock climbing, and bonfire parties under the stars.",
-		price: 2500,
-		image:
-			"https://www.bikatadventures.com/images/Gallery/IMG1000X548/img-spiti-ice-climbing-festival6310-Bikat-Adventures.jpg",
-	},
-	{
-		name: "Kolkata Jazz Festival",
-		date: new Date("2025-11-05"),
-		location: "Rabindra Sadan, Kolkata, India",
-		description:
-			"Smooth tunes, world-class artists, and a classy crowd. Perfect for a jazzy evening in the cultural heart of India.",
+			"Join Sabrina Carpenter on her sensational world tour, featuring captivating performances and her greatest hits.",
 		price: 1200,
 		image:
-			"https://mediaindia.eu/wp-content/uploads/2017/12/20171208_204455-1-1200x675.jpg",
+			"https://media1.houstonpress.com/hou/imager/new-headline/u/magnum/19232954/img_9556.jpg?cb=1730101156",
 	},
 	{
-		name: "Manali Winter Rave",
-		date: new Date("2025-12-15"),
-		location: "Solang Valley, Manali, Himachal Pradesh, India",
+		name: "Comedy Roast Night with Kevin Hart",
+		date: new Date("2025-08-01"),
+		location: "The Wiltern, Los Angeles, USA",
 		description:
-			"Snow, beats, and fire vibes at this exclusive winter rave in the snowy paradise of Manali.",
-		price: 3000,
-		image:
-			"https://i0.wp.com/walkingwanderer.com/wp-content/uploads/2017/03/manali-manualaya.jpg?resize=960%2C453",
-	},
-	{
-		name: "Varanasi Spiritual Music Festival",
-		date: new Date("2025-02-22"),
-		location: "Dashashwamedh Ghat, Varanasi, India",
-		description:
-			"Immerse yourself in soulful Indian classical music right by the Ganges. An ethereal experience like no other.",
-		price: 800,
-		image:
-			"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSatc2_2fU6RkArThtI37UaNJ5UjJTdiyFlyA&s",
-	},
-	{
-		name: "Mumbai Night Run Festival",
-		date: new Date("2025-06-10"),
-		location: "Marine Drive, Mumbai, India",
-		description:
-			"A glow-in-the-dark marathon paired with live music, dance zones, and energy bars. Run, party, repeat!",
-		price: 700,
-		image: "https://www.goldmedalindia.com/img/about/events/GSC2.jpg",
-	},
-	{
-		name: "Ziro Music Festival",
-		date: new Date("2025-09-21"),
-		location: "Ziro Valley, Arunachal Pradesh, India",
-		description:
-			"India’s coolest indie music festival held in the picturesque Ziro Valley. Music, nature, and pure vibes.",
-		price: 2000,
-		image: "https://arunachalobserver.org/wp-content/uploads/2024/06/ZFM.jpg",
-	},
-	{
-		name: "Jaipur Hot Air Balloon Festival",
-		date: new Date("2025-10-15"),
-		location: "Amber Fort, Jaipur, Rajasthan, India",
-		description:
-			"Fly high over the Pink City during this stunning balloon fest, paired with food stalls and live performances.",
-		price: 3500,
-		image:
-			"https://i.natgeofe.com/n/afed8e9e-e199-4f29-a4a2-846ea2ebe432/albuquerque-balloon-festival-new-mexico.jpg",
-	},
-	{
-		name: "Bangalore Oktoberfest",
-		date: new Date("2025-10-05"),
-		location: "UB City, Bangalore, India",
-		description:
-			"Beer, bratwurst, and Bavarian vibes right here in India. Get ready to chug like never before!",
-		price: 1000,
-		image:
-			"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIskUetNDXfpd0tEsQ3RvcjIgCkkcH4z92-w&s",
-	},
-	{
-		name: "Andaman Underwater Festival",
-		date: new Date("2025-11-25"),
-		location: "Havelock Island, Andaman & Nicobar Islands, India",
-		description:
-			"Snorkeling, scuba diving, and epic underwater parties. The ocean comes alive at this tropical paradise.",
-		price: 4000,
-		image:
-			"https://utsav.gov.in/public/uploads/event_picture_image/event_834/16614285781208334019.jpg",
-	},
-	{
-		name: "Pushkar Camel Fair Rave",
-		date: new Date("2025-11-12"),
-		location: "Pushkar, Rajasthan, India",
-		description:
-			"A crazy twist on the traditional camel fair: desert raves, bonfire parties, and art installations.",
+			"A gut-busting comedy show where Kevin Hart roasts everyone and everything in his hilarious signature style.",
 		price: 1500,
 		image:
-			"https://www.tripsavvy.com/thmb/--xKuF4KkxW9r6hi4sj-Ap7zkuM=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-109686750-59d5e29faad52b0010d4ca6f.jpg",
+			"https://wallpapers.com/images/hd/stand-up-comedian-kevin-hart-0324eqnid6gi4k3j.jpg",
 	},
 	{
-		name: "Delhi Urban Art Week",
-		date: new Date("2025-04-18"),
-		location: "Connaught Place, Delhi, India",
+		name: "Desert Mirage Rave Festival",
+		date: new Date("2025-09-10"),
+		location: "Black Rock Desert, Nevada, USA",
 		description:
-			"Street art, graffiti battles, and live murals. Celebrate the artistic pulse of Delhi’s streets.",
-		price: 500,
+			"An insane rave party featuring Alesso, Skrillex, and Diplo in the middle of the desert. Glow sticks mandatory.",
+		price: 3500,
+		image: "https://static.spin.com/files/120608-edc.png",
+	},
+	{
+		name: "Billie Eilish World Tour",
+		date: new Date("2025-10-10"),
+		location: "New York City, United States",
+		description:
+			"Immerse yourself in the hauntingly beautiful music of Billie Eilish as she takes you on a journey with her world tour.",
+		price: 1800,
 		image:
-			"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9lfSfLuypioeEe6PePq0Tgp4H02pYsH9wrg&s",
+			"https://spectrumculture.com/wp-content/uploads/2022/03/UTK4R40Q.jpeg",
+	},
+	{
+		name: "Burning Man Festival",
+		date: new Date("2025-08-25"),
+		location: "Black Rock City, Nevada, USA",
+		description:
+			"A mind-bending week of radical self-expression, art installations, and EDM under the stars.",
+		price: 7000,
+		image:
+			"https://pohcdn.com/guide/sites/default/files/styles/node__blog_post__bp_banner__blog_post_banner/public/2022-08/burningmantaschen.jpeg",
+	},
+	{
+		name: "Mike Tyson vs Jake Paul: The Ultimate Showdown",
+		date: new Date("2025-12-05"),
+		location: "Las Vegas, United States",
+		description:
+			"Witness history in the making as boxing legend Mike Tyson faces off against internet sensation Jake Paul in a clash of generations.",
+		price: 5000,
+		image:
+			"https://www.hollywoodreporter.com/wp-content/uploads/2024/06/GettyImages-2152814911.jpg",
+	},
+	{
+		name: "Post Malone: Beerbongs & Bentleys Tour",
+		date: new Date("2025-09-05"),
+		location: "Rogers Arena, Vancouver, Canada",
+		description:
+			"Posty performs hits like 'Rockstar' and 'Circles' while shotgunning beers with the crowd. Vibes: immaculate.",
+		price: 3200,
+		image:
+			"https://www.udiscovermusic.com/wp-content/uploads/2020/08/Post-Malone-GettyImages-1210482021-1000x600.jpg",
+	},
+	{
+		name: "The Weeknd: After Hours Til Dawn",
+		date: new Date("2025-06-18"),
+		location: "MetLife Stadium, New Jersey, USA",
+		description:
+			"The Weeknd takes you on a journey through his hauntingly beautiful discography with jaw-dropping visuals.",
+		price: 4500,
+		image:
+			"https://images.squarespace-cdn.com/content/v1/5f0f5bfe2654745635bfd2f2/60f5a6ea-4f23-4474-922c-e55ca9070314/WKND+Jason+Ardizzone-West+AR8A3443.jpg",
+	},
+	{
+		name: "Dua Lipa World Tour",
+		date: new Date("2025-08-20"),
+		location: "London, United Kingdom",
+		description:
+			"Experience the electrifying performances of Dua Lipa as she lights up the stage on her world tour.",
+		price: 1500,
+		image:
+			"https://phantom-marca.unidadeditorial.es/ba8a0ba63d3ae4b0538aa93fb00080a5/crop/0x0/2044x1363/resize/828/f/jpg/assets/multimedia/imagenes/2024/06/30/17197723157256.jpg",
+	},
+	{
+		name: "Harry Styles: Love On Tour",
+		date: new Date("2025-05-25"),
+		location: "Wembley Stadium, London, UK",
+		description:
+			"Harry Styles serenades you with his angelic voice, funky outfits, and iconic stage presence.",
+		price: 3800,
+		image: "https://i.ytimg.com/vi/Fulf3ZWnE4Q/maxresdefault.jpg",
+	},
+	{
+		name: "NVIDIA Mega Event 2025",
+		date: new Date("2025-06-20"),
+		location: "San Francisco, United States",
+		description:
+			"Join NVIDIA's groundbreaking mega event to explore the future of AI, gaming, and cutting-edge technologies.",
+		price: 2500,
+		image:
+			"https://www.nvidia.com/content/dam/en-zz/en_sg/ai-conference/ai-conference-fb-og.jpg",
+	},
+	{
+		name: "Boiler Room Rave Night",
+		date: new Date("2025-04-30"),
+		location: "Berlin, Germany",
+		description:
+			"Experience underground techno in its purest form as Boiler Room hosts the wildest rave of the year.",
+		price: 2500,
+		image:
+			"https://cdn.sanity.io/images/pge26oqu/production/250a2cff1d34bd8c6d93699beb3483e003d7f19f-1920x1280.jpg?bg=000000&w=960&h=540&fit=fill",
+	},
+	{
+		name: "J. Cole: Dreamville Festival",
+		date: new Date("2025-09-22"),
+		location: "Dorothea Dix Park, Raleigh, North Carolina, USA",
+		description:
+			"J. Cole brings out the entire Dreamville crew and some surprise guests to light up the stage.",
+		price: 3000,
+		image:
+			"https://www.okayplayer.com/media-library/drake-and-j-cole-for-dreamville-festival-2023.jpg?id=33626608&width=1245&height=700&quality=90&coordinates=0%2C57%2C0%2C69",
+	},
+	{
+		name: "Red Bull Rampage",
+		date: new Date("2025-10-20"),
+		location: "Virgin, Utah, USA",
+		description:
+			"Watch adrenaline junkies pull off death-defying tricks in the ultimate freeride mountain biking event.",
+		price: 1500,
+		image: "https://cdn.mos.cms.futurecdn.net/8F5VmmTMHxZYQMPgiKCYdJ.jpg",
+	},
+	{
+		name: "Comedy Festival: Dave Chappelle & Friends",
+		date: new Date("2025-06-10"),
+		location: "Radio City Music Hall, New York, USA",
+		description:
+			"Dave Chappelle hosts a star-studded night of side-splitting comedy featuring his A-list comedian pals.",
+		price: 2500,
+		image:
+			"https://img.resized.co/hotpress/eyJkYXRhIjoie1widXJsXCI6XCJodHRwczpcXFwvXFxcL21lZGlhLmhvdHByZXNzLmNvbVxcXC91cGxvYWRzXFxcLzIwMjJcXFwvMDVcXFwvMDQwOTIwMDFcXFwvU2NyZWVuLVNob3QtMjAyMi0wNS0wNC1hdC0wOS4xOS40MS5wbmdcIixcIndpZHRoXCI6XCI5NjhcIixcImhlaWdodFwiOlwiXCIsXCJkZWZhdWx0XCI6XCJodHRwczpcXFwvXFxcL3d3dy5ob3RwcmVzcy5jb21cXFwvaVxcXC9uby1pbWFnZS5wbmc_dj05XCIsXCJvcHRpb25zXCI6W119IiwiaGFzaCI6ImUyNGEyZmFkMzZmNjg2M2NjYzZjMDk1YWEyYjI2MmYxZTA5ODRmYzkifQ==/screen-shot-2022-05-04-at-09-19-41.png",
+	},
+	{
+		name: "Ultra Music Festival",
+		date: new Date("2025-03-22"),
+		location: "Bayfront Park, Miami, USA",
+		description:
+			"A massive EDM extravaganza with sets by Marshmello, Deadmau5, and The Chainsmokers.",
+		price: 5000,
+		image: "https://umfworldwide.com/wp-content/uploads/2024/06/stage-2.png",
 	},
 ];
 

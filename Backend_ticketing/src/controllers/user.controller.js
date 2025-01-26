@@ -98,4 +98,17 @@ const getUserTickets = async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 };
-export { signup, login, logout, update, getUserTickets };
+
+const getUserProfile = async (req, res) => {
+	try {
+		const user = await Users.findById(req.user.id);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		res.status(200).json(user);
+	} catch (error) {
+		console.log("Error fetching user profile:", error);
+		res.status(500).json({ message: error.message });
+	}
+};
+export { signup, login, logout, update, getUserTickets, getUserProfile };

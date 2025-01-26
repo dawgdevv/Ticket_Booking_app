@@ -3,6 +3,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSpring, animated } from "react-spring";
 import Confetti from "react-confetti";
+import PropTypes from "prop-types";
 
 const ResellTickets = () => {
   const [userTickets, setUserTickets] = useState([]);
@@ -55,7 +56,7 @@ const ResellTickets = () => {
   const handleResellTicket = async () => {
     if (selectedTicket && resellPrice) {
       try {
-        const response = await axios.post(
+        await axios.post(
           "http://localhost:8000/tickets/resell",
           { ticketId: selectedTicket._id, price: resellPrice },
           {
@@ -301,6 +302,14 @@ const AnimatedInput = ({ id, label, value, onChange, type }) => {
       />
     </animated.div>
   );
+};
+
+AnimatedInput.propTypes = {
+  id: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  type: PropTypes.string.isRequired,
 };
 
 export default ResellTickets;

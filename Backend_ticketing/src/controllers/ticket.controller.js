@@ -6,6 +6,7 @@ import Marketplace from "../models/market.model.js";
 import AuctionTicket from "../models/auction.model.js";
 import { createSolanaPayment, mintNFT } from "../utils/solana.service.js";
 import { generateNFTMetadata } from "../utils/nft.service.js";
+import AuctionWonTickets from "../models/auctionwontickets.model.js";
 
 export const bookTicketWithSolana = async (req, res) => {
 	const { eventId, quantity, seats, userPublicKey } = req.body;
@@ -225,7 +226,34 @@ export const buyresellTickets = async (req, res) => {
 	}
 };
 
-// Add new function for Solana marketplace purchase
+export const createAuction = async (req, res) => {
+	const { ticketId, startingBid, auctionEnd } = req.body;
+	const userId = req.user.id;
+
+	try {
+		const ticket = await Ticket.findById(ticketId).populate("event");
+		if (!ticket) {
+			return res.status(404).json({ message: "Ticket not found" });
+		}
+
+		const auctionTicket = new AuctionTicket({
+			event: ticket.event,
+			ticket: ticket._id,
+			seat: ticket.seats[0], // Assuming single seat for simplicity
+			startingBid,
+			auctionEnd,
+			organizer: userId,
+		});
+
+		await auctionTicket.save();
+		res
+			.status(201)
+			.json({ message: "Auction created successfully", auctionTicket });
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
+
 export const buyResellTicketWithSolana = async (req, res) => {
 	const { resellTicketId, userPublicKey } = req.body;
 	const userId = req.user.id;
@@ -271,69 +299,76 @@ export const buyResellTicketWithSolana = async (req, res) => {
 	}
 };
 
-export const createAuction = async (req, res) => {
-	const { ticketId, startingBid, auctionEnd } = req.body;
-	const userId = req.user.id;
-
-	try {
-		const ticket = await Ticket.findById(ticketId).populate("event");
-		if (!ticket) {
-			return res.status(404).json({ message: "Ticket not found" });
-		}
-
-		const auctionTicket = new AuctionTicket({
-			event: ticket.event,
-			ticket: ticket._id,
-			seat: ticket.seats[0], // Assuming single seat for simplicity
-			startingBid,
-			auctionEnd,
-			organizer: userId,
-		});
-
-		await auctionTicket.save();
-		res
-			.status(201)
-			.json({ message: "Auction created successfully", auctionTicket });
-	} catch (error) {
-		res.status(500).json({ message: error.message });
-	}
-};
-
 export const getAuctionItems = async (req, res) => {
 	try {
-		const auctionItems = await AuctionTicket.find({}).populate(
-			"event ticket organizer"
-		);
+		const currentDateTime = new Date();
+
+		// Fetch only active auctions
+		const auctionItems = await AuctionTicket.find({
+			auctionEnd: { $gt: currentDateTime },
+		}).populate("event ticket organizer participants");
+
+		console.log(auctionItems);
+
 		res.status(200).json(auctionItems);
 	} catch (error) {
+		console.error("Error fetching auction items:", error);
 		res.status(500).json({ message: error.message });
 	}
 };
-
 export const placeBid = async (req, res) => {
-	const { auctionId, bidAmount } = req.body;
-	const userId = req.user.id;
+	const { id } = req.params; // Auction ID
+	const { bidAmount } = req.body; // User's bid amount
+	const userId = req.user.id; // Authenticated user's ID
 
 	try {
-		const auction = await AuctionTicket.findById(auctionId);
+		const auction = await AuctionTicket.findById(id); // Assuming an Auction model exists
 		if (!auction) {
-			return res.status(404).json({ message: "Auction not found" });
+			return res.status(404).json({ error: "Auction not found" });
 		}
 
-		// Check if the bid is higher than the current highest bid
-		if (bidAmount <= auction.currentBid) {
+		if (bidAmount <= auction.highestBid) {
 			return res
 				.status(400)
-				.json({ message: "Bid amount must be higher than the current bid" });
+				.json({ error: "Bid must be higher than the current highest bid" });
 		}
 
-		// Update the auction with the new highest bid
-		auction.currentBid = bidAmount;
+		// Update auction with the new highest bid and bidder
+		auction.highestBid = bidAmount;
 		auction.highestBidder = userId;
 		await auction.save();
 
-		res.status(200).json({ message: "Bid placed successfully", auction });
+		res
+			.status(200)
+			.json({
+				message: "Bid placed successfully",
+				newHighestBid: auction.highestBid,
+			});
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		console.error("Error placing bid:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+export const getAuctionWonTickets = async (req, res) => {
+	try {
+		const wonTickets = await AuctionWonTickets.find({ user: req.user.id })
+			.populate({
+				path: "ticket",
+				populate: {
+					path: "event",
+					select: "name date location",
+				},
+			})
+			.populate("auctionTicket")
+			.sort({ wonAt: -1 });
+
+		res.status(200).json(wonTickets);
+	} catch (error) {
+		console.error("Error fetching auction won tickets:", error);
+		res.status(500).json({
+			message: "Failed to fetch auction won tickets",
+			error: error.message,
+		});
 	}
 };

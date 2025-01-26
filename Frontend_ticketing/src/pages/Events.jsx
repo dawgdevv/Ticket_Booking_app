@@ -8,6 +8,7 @@ import Modal from "./modal";
 import { jsPDF } from "jspdf";
 import EventCard from "../components/EventCard";
 import TicketDetails from "../components/TicketDetails";
+import AptosBooking from "../components/AptosBooking.tsx";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
@@ -265,6 +266,20 @@ const Events = () => {
                   >
                     Pay with Solana
                   </button>
+                  <AptosBooking
+                    event={selectedEvent}
+                    selectedSeats={selectedSeats}
+                    onSuccess={(txHash) => {
+                      setTicketDetails({
+                        ...selectedEvent,
+                        txHash,
+                        blockchain: "aptos",
+                        seats: selectedSeats,
+                        quantity: selectedSeats.length,
+                      });
+                      setIsPaymentModalOpen(false);
+                    }}
+                  />
                 </div>
               </div>
             </Modal>

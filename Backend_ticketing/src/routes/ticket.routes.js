@@ -12,6 +12,7 @@ import {
 	// Ensure this controller is implemented
 } from "../controllers/ticket.controller.js";
 import { authenticateUser } from "../middlewares/auth.js";
+import { getAuctionWonTickets } from "../controllers/ticket.controller.js";
 
 const router = express.Router();
 
@@ -39,4 +40,8 @@ router.post("/auction/:id/bid", authenticateUser, placeBid);
 // Solana roues
 router.post("/book-solana", authenticateUser, bookTicketWithSolana);
 router.post("/purchase-solana", authenticateUser, buyResellTicketWithSolana);
+
+// Get auction won tickets
+router.get("/auction-won-tickets", authenticateUser, getAuctionWonTickets);
+
 export default router;
