@@ -50,7 +50,7 @@ const Auction = () => {
   const joinAuction = async (auctionId) => {
     try {
       const response = await axios.post(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/api/auction/${auctionId}/join`,
+        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auction/${auctionId}/join`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
