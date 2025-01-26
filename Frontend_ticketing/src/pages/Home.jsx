@@ -22,7 +22,9 @@ const Home = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("/api/events");
+        const response = await axios.get(
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/events"
+        );
         setEvents(response.data);
       } catch (error) {
         console.error("Failed to fetch events:", error);
