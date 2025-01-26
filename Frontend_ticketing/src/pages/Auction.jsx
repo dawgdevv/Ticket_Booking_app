@@ -18,9 +18,12 @@ const Auction = () => {
 
   const fetchAuctionItems = async () => {
     try {
-      const response = await axios.get("/api/tickets/auctionitems", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const response = await axios.get(
+        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auctionitems",
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
 
       // Filter out auctions with a winner or sold ticket
       const now = new Date();

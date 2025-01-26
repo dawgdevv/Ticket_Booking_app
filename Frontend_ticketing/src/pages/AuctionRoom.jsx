@@ -42,11 +42,14 @@ const AuctionRoom = () => {
 
   const fetchLatestAuctionDetails = useCallback(async () => {
     try {
-      const response = await axios.get(`/api/auctionrooms/auctionitems`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.get(
+        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auctionitems`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
       const auction = response.data.find(
         (auction) => auction._id === auctionId
@@ -67,7 +70,7 @@ const AuctionRoom = () => {
   }, [auctionId]);
 
   useEffect(() => {
-    const newSocket = io("/api");
+    const newSocket = io("https://dtix-backend-7f609a0e60c3.herokuapp.com");
     setSocket(newSocket);
 
     const storedUserId = localStorage.getItem("userId");

@@ -18,11 +18,14 @@ const OrganizeAuction = () => {
     const fetchUserTickets = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("/api/auth/tickets", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const response = await axios.get(
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/tickets",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         setUserTickets(response.data);
       } catch (error) {
         console.error("Error fetching user tickets:", error);
@@ -49,7 +52,7 @@ const OrganizeAuction = () => {
     if (selectedTicket && startingBid && auctionEnd) {
       try {
         const response = await axios.post(
-          "/api/tickets/auction",
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auction",
           { ticketId: selectedTicket._id, startingBid, auctionEnd },
           {
             headers: {
