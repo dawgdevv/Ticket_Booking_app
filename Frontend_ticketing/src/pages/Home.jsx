@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { getIndianCities } from "../utils/GoogleMapsAPI";
 import { motion, AnimatePresence } from "framer-motion";
