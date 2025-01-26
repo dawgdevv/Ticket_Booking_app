@@ -21,11 +21,14 @@ const ResellTickets = () => {
     const fetchUserTickets = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("http://localhost:8000/auth/tickets", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const response = await axios.get(
+          "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/tickets",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         setUserTickets(response.data);
       } catch (error) {
         console.error(error);
