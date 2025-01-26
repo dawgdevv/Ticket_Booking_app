@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { getIndianCities } from "../utils/GoogleMapsAPI";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import ExplanationPopup from "./ExplanationPopup";
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -176,6 +177,8 @@ const Home = () => {
           />
         )}
       </AnimatePresence>
+      {/* Explanation Popup */}
+      <ExplanationPopup />
     </motion.div>
   );
 };
