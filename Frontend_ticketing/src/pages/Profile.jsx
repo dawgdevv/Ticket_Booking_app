@@ -14,14 +14,11 @@ function Profile() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await axios.get("/api/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -37,14 +34,11 @@ function Profile() {
         throw new Error("No authentication token found");
       }
 
-      const response = await axios.get(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auction-won-tickets",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("/api/tickets/auction-won-tickets", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data) {
         setAuctionWonTickets(response.data);
@@ -61,9 +55,7 @@ function Profile() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/logout"
-      );
+      await axios.post("/api/auth/logout");
       localStorage.removeItem("token");
       navigate("/login");
     } catch (error) {

@@ -42,14 +42,11 @@ const AuctionRoom = () => {
 
   const fetchLatestAuctionDetails = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/auctionrooms/auctionitems`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/auctionrooms/auctionitems`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       const auction = response.data.find(
         (auction) => auction._id === auctionId
@@ -70,7 +67,7 @@ const AuctionRoom = () => {
   }, [auctionId]);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8000");
+    const newSocket = io("/api");
     setSocket(newSocket);
 
     const storedUserId = localStorage.getItem("userId");
@@ -193,7 +190,7 @@ const AuctionRoom = () => {
 
     try {
       await axios.post(
-        `http://localhost:8000/auctionrooms/auction/${auctionId}/bid`,
+        `/api/auction/${auctionId}/bid`,
         { bidAmount: parsedBidAmount },
         {
           headers: {
@@ -218,7 +215,7 @@ const AuctionRoom = () => {
   const handlePaymentSuccess = async (txHash, method) => {
     try {
       await axios.post(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctions/${auctionId}/complete`,
+        `/api/auctions/${auctionId}/complete`,
         {
           txHash,
           paymentMethod: method,
