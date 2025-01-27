@@ -34,19 +34,21 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0">
-              <img
-                className="h-6 w-6 mr-3 text-red-300"
-                src="img/tickets.png"
-                alt="Logo"
-              />
-            </Link>
+            <img
+              className="h-6 w-6 mr-3 text-red-300"
+              src="img/tickets.png"
+              alt="Logo"
+            />
+
             <p className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-2xl font-bold">
               DTIX
             </p>
             {isLoggedIn ? (
               <div className="hidden md:block">
                 <div className="ml-10 flex items-baseline space-x-4">
+                  <Link to="/" className="flex-shrink-0">
+                    Home
+                  </Link>
                   <Link
                     to="/events"
                     className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
