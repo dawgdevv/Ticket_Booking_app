@@ -195,7 +195,7 @@ const AuctionRoom = () => {
 
     try {
       await axios.post(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auction/${auctionId}/bid`,
+        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auction/${auctionId}/bid`,
         { bidAmount: parsedBidAmount },
         {
           headers: {
@@ -220,7 +220,7 @@ const AuctionRoom = () => {
   const handlePaymentSuccess = async (txHash, method) => {
     try {
       await axios.post(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctions/${auctionId}/complete`,
+        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auctions/${auctionId}/complete`,
         {
           txHash,
           paymentMethod: method,
