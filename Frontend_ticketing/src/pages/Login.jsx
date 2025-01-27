@@ -35,7 +35,7 @@ const Login = () => {
           "user",
           JSON.stringify({ username: data.username, email: data.email })
         );
-        navigate("https://ticket-booking-app-c64o.vercel.app/");
+        navigate("/");
       } else {
         alert("Login failed");
       }
