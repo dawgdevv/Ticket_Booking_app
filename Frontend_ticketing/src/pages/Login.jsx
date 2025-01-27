@@ -35,7 +35,8 @@ const Login = () => {
           "user",
           JSON.stringify({ username: data.username, email: data.email })
         );
-        navigate("/");
+        //navigate("/");
+        window.location.reload();
       } else {
         alert("Login failed");
       }
