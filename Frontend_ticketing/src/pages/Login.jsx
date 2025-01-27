@@ -107,6 +107,7 @@ const Login = () => {
               Sign In
             </motion.button>
           </div>
+          <p> please reload after login</p>
         </form>
       </motion.div>
     </motion.div>
