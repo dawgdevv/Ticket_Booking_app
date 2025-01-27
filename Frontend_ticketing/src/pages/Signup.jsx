@@ -120,17 +120,6 @@ const Signup = () => {
             </motion.button>
           </div>
         </form>
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{" "}
-            <a
-              href="/login"
-              className="font-medium text-pink-600 hover:text-pink-500"
-            >
-              Log in
-            </a>
-          </p>
-        </div>
       </motion.div>
     </motion.div>
   );
