@@ -83,7 +83,7 @@ const Navbar = () => {
                     to="/search"
                     className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Search
+                    AI Search
                   </Link>
                   <Link
                     to="/store"
