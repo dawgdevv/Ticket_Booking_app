@@ -151,7 +151,7 @@ const Home = () => {
           <EventDetailsModal
             event={selectedEvent}
             onClose={() => setSelectedEvent(null)}
-            onBuyTickets={() => navigate(`/events/${selectedEvent._id}`)}
+            onBuyTickets={() => navigate(`/events`)}
           />
         )}
       </AnimatePresence>
