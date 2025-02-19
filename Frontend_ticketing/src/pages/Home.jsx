@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { getIndianCities } from "../utils/GoogleMapsAPI";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ExplanationPopup from "./ExplanationPopup";
@@ -9,7 +9,7 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [cities, setCities] = useState([]);
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
@@ -42,16 +42,6 @@ const Home = () => {
 
     return () => clearInterval(timer);
   }, [events.length]);
-
-  // Fetch Cities
-  useEffect(() => {
-    const fetchCities = async () => {
-      const indianCities = await getIndianCities();
-      setCities(indianCities);
-    };
-    fetchCities();
-  }, []);
-
   // Event Click Handler
   const handleEventClick = (event) => {
     if (isAuthenticated) {
@@ -79,18 +69,6 @@ const Home = () => {
                 placeholder="Search for Events, Plays, Sports and Activities"
                 className="w-full px-4 py-2 bg-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-            </div>
-
-            {/* Location Selector */}
-            <div className="flex items-center gap-2">
-              <select className="bg-transparent text-sm">
-                <option>Select Location</option>
-                {cities.map((city) => (
-                  <option key={city.name} value={city.name}>
-                    {city.name}, {city.state}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 
