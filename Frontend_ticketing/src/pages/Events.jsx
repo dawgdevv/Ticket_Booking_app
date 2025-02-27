@@ -269,7 +269,12 @@ const Events = () => {
                     Pay with Solana
                   </button>
                   <AptosBooking
-                    event={selectedEvent}
+                    event={{
+                      name: selectedEvent.name,
+                      price: selectedEvent.price,
+                      venue: selectedEvent.location,
+                      date: selectedEvent.date,
+                    }}
                     selectedSeats={selectedSeats}
                     onSuccess={(txHash) => {
                       setTicketDetails({

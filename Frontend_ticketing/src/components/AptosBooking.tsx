@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { AptosService } from "../services/aptos.service";
+import { AptosService, AptosError } from "../services/aptos.service";
 import { AptosBookingProps } from "../types/aptos";
 
 export const AptosBooking: React.FC<AptosBookingProps> = ({
@@ -22,9 +22,9 @@ export const AptosBooking: React.FC<AptosBookingProps> = ({
       const { address } = await aptosService.connectWallet();
       console.log("Connected wallet:", address);
 
-      // Book tickets for each seat
+      // For each seat, we need to create a destination string that includes the seat information
       const bookingPromises = selectedSeats.map((seat) =>
-        aptosService.bookTicket(event.name, event.price, seat)
+        aptosService.bookTicket(`${event.name} (Seat: ${seat})`, event.price)
       );
 
       const results = await Promise.all(bookingPromises);

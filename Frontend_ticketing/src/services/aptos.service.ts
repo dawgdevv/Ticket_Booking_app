@@ -7,6 +7,13 @@ import {
   AccountAddress,
 } from "@aptos-labs/ts-sdk";
 
+export class AptosError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AptosError";
+  }
+}
+
 export class AptosService {
   private client: Aptos;
   private moduleAddress: string;
@@ -17,8 +24,13 @@ export class AptosService {
       fullnode: "https://fullnode.devnet.aptoslabs.com/v1",
     });
     this.client = new Aptos(config);
-    this.moduleAddress = this.moduleAddress =
-      import.meta.env.VITE_APTOS_MODULE_ADDRESS;
+    // Ensure the address has 0x prefix
+    const addressFromEnv = import.meta.env.VITE_APTOS_MODULE_ADDRESS;
+    this.moduleAddress = addressFromEnv.startsWith("0x")
+      ? addressFromEnv
+      : `0x${addressFromEnv}`;
+
+    console.log("Using module address:", this.moduleAddress);
   }
 
   async connectWallet(): Promise<{ address: string }> {
@@ -36,32 +48,52 @@ export class AptosService {
     }
   }
 
-  async bookTicket(destination: string, seat: string): Promise<string> {
+  async bookTicket(destination: string, price: number): Promise<string> {
     try {
+      console.log("Starting ticket booking process");
       const petra = (window as any).petra;
-      if (!petra) throw new Error("Petra wallet not found!");
+      if (!petra) {
+        console.error("Petra wallet not found");
+        throw new Error("Petra wallet not found!");
+      }
 
+      console.log("Connecting to account");
       const account = await petra.account();
       console.log("Booking with account:", account.address);
+
+      // Convert price to a string representing a u64 value
+      // Since our contract expects a u64, we need to ensure it's properly formatted
+      const priceInU64 = Math.floor(price).toString();
 
       const transaction = {
         function: `${this.moduleAddress}::ticket::book_ticket`,
         type_arguments: [],
-        arguments: [destination, seat],
+        arguments: [destination, priceInU64],
       };
 
-      console.log("Submitting transaction:", transaction);
-      const pendingTx = await petra.signAndSubmitTransaction(transaction);
+      console.log("Transaction data:", JSON.stringify(transaction, null, 2));
+      console.log("Submitting transaction");
+
+      // Use the newer API format
+      const pendingTx = await petra.signAndSubmitTransaction({
+        payload: transaction,
+      });
+
       console.log("Transaction submitted:", pendingTx.hash);
 
+      console.log("Waiting for transaction confirmation");
       const txn = await this.client.waitForTransaction({
         transactionHash: pendingTx.hash,
         checkSuccess: true,
       });
+      console.log("Transaction confirmed:", txn);
 
-      return txn.hash;
-    } catch (error) {
+      return pendingTx.hash;
+    } catch (error: any) {
       console.error("Transaction failed:", error);
+      if (error.message) {
+        console.error("Error message:", error.message);
+      }
       throw new AptosError(error.message || "Failed to book ticket");
     }
   }
@@ -94,11 +126,8 @@ export class AptosService {
       return false;
     }
   }
-}
 
-class AptosError extends Error {
-  constructor(message: string, public code?: string) {
-    super(message);
-    this.name = "AptosError";
+  getModuleAddress(): string {
+    return this.moduleAddress;
   }
 }
