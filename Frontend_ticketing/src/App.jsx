@@ -42,7 +42,7 @@ function App() {
             </Routes>
           </main>
           <footer className="py-4 text-center text-gray-900 bg-opacity-30 backdrop-blur-sm">
-            <p>&copy; 2025 DTIX. Made by Brocoders.</p>
+            <p>&copy; 2025 DTIX.</p>
           </footer>
         </div>
       </div>
