@@ -8,7 +8,9 @@ import CheckoutForm from "./CheckoutForm.jsx";
 import { jsPDF } from "jspdf";
 import TicketDetails from "../components/TicketDetails";
 
-const stripePromise = loadStripe(import.meta.env.STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(
+  "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
+);
 
 const TicketMarketplace = () => {
   const [resaleTickets, setResaleTickets] = useState([]);
