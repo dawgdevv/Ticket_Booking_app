@@ -119,7 +119,10 @@ const Signup = () => {
               Sign Up
             </motion.button>
           </div>
-          <p> username and password must be at least 8 characters long</p>
+          <p className="font-semibold">
+            {" "}
+            Username and password must be at least 8 characters
+          </p>
         </form>
       </motion.div>
     </motion.div>
