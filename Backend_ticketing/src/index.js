@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 8000;
 const server = http.createServer(app);
 const allowedOrigins = [
 	"http://localhost:5173",
-	"https://ticket-booking-app-three.vercel.app",
+	"https://ticket-booking-app-c64o.vercel.app",
 ];
 
 const io = new Server(server, {
