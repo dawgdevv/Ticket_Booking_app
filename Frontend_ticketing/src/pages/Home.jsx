@@ -9,7 +9,6 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(null);
-
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
@@ -58,38 +57,6 @@ const Home = () => {
       exit={{ opacity: 0 }}
       className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-blue-100"
     >
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center h-16 justify-between">
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-4">
-              <input
-                type="text"
-                placeholder="Search for Events, Plays, Sports and Activities"
-                className="w-full px-4 py-2 bg-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex items-center gap-8 h-12 text-sm border-t">
-            {["Movies", "Events", "Plays", "Sports", "Activities"].map(
-              (item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="hover:text-red-500 transition-colors duration-300"
-                >
-                  {item}
-                </a>
-              )
-            )}
-          </nav>
-        </div>
-      </header>
-
-      {/* Carousel */}
       <div className="relative">
         <div className="w-full h-[400px] relative overflow-hidden">
           {events.map((event, index) => (
@@ -137,9 +104,6 @@ const Home = () => {
       <div className="container mx-auto px-4 py-8 space-y-12">
         {/* Events Grid */}
         <EventsGrid events={events} onEventClick={handleEventClick} />
-
-        {/* Entertainment Categories */}
-        <EntertainmentCategories />
 
         {/* Trending Events */}
         <TrendingEvents events={events} />
@@ -236,33 +200,6 @@ const EventsGrid = ({ events, onEventClick }) => (
       </motion.div>
     ))}
   </motion.div>
-);
-
-const EntertainmentCategories = () => (
-  <div>
-    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-      The Best of Entertainment
-    </h2>
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-      {[
-        "Movies",
-        "Concerts",
-        "Comedy",
-        "Sports",
-        "Theatre",
-        "Music",
-        "Dance",
-        "Others",
-      ].map((category) => (
-        <div
-          key={category}
-          className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-300 cursor-pointer transition-colors"
-        >
-          <span className="text-sm font-medium">{category}</span>
-        </div>
-      ))}
-    </div>
-  </div>
 );
 
 const TrendingEvents = ({ events }) => (
