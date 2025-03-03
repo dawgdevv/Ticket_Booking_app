@@ -20,7 +20,7 @@ const OrganizeAuction = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/tickets",
+          import.meta.env.VITE_BACKEND_URL + "/auth/tickets",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -53,7 +53,7 @@ const OrganizeAuction = () => {
     if (selectedTicket && startingBid && auctionEnd) {
       try {
         const response = await axios.post(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auction",
+          import.meta.env.VITE_BACKEND_URL + "/tickets/auction",
           { ticketId: selectedTicket._id, startingBid, auctionEnd },
           {
             headers: {
