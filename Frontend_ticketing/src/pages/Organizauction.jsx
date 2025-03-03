@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
 import { Tooltip } from "react-tooltip";
 import { useSpring, animated } from "react-spring";
+import Proptypes from "prop-types";
 
 const OrganizeAuction = () => {
   const [userTickets, setUserTickets] = useState([]);
@@ -412,6 +413,26 @@ const CountdownTimer = ({ endDate }) => {
       )}
     </div>
   );
+};
+
+AuctionPreview.propTypes = {
+  selectedTicket: Proptypes.object.isRequired,
+  startingBid: Proptypes.string.isRequired,
+  auctionEnd: Proptypes.string.isRequired,
+  formatPrice: Proptypes.func.isRequired,
+};
+
+AnimatedInput.propTypes = {
+  id: Proptypes.string.isRequired,
+  label: Proptypes.string.isRequired,
+  value: Proptypes.string.isRequired,
+  onChange: Proptypes.func.isRequired,
+  type: Proptypes.string.isRequired,
+  tooltipContent: Proptypes.string.isRequired,
+};
+
+CountdownTimer.propTypes = {
+  endDate: Proptypes.string.isRequired,
 };
 
 export default OrganizeAuction;

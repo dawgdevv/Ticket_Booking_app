@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ExplanationPopup from "./ExplanationPopup";
+import PropTypes from "prop-types";
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -24,7 +24,7 @@ const Home = () => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/events"
+          import.meta.env.VITE_BACKEND_URL + "/events"
         );
         setEvents(response.data);
       } catch (error) {
@@ -161,6 +161,7 @@ const Home = () => {
   );
 };
 
+// Extracted Components for Better Readability
 // Extracted Components for Better Readability
 const EventDetails = ({ event, onDetailsClick }) => (
   <>
@@ -394,5 +395,38 @@ const LocationIcon = (props) => (
     />
   </svg>
 );
+
+EventDetails.propTypes = {
+  events: PropTypes.object.isRequired,
+  onDetailsClick: PropTypes.func.isRequired,
+};
+EventsGrid.propTypes = {
+  events: PropTypes.array.isRequired,
+  onEventClick: PropTypes.func.isRequired,
+};
+
+// For TrendingEvents
+TrendingEvents.propTypes = {
+  events: PropTypes.array.isRequired,
+};
+
+// For EventDetailsModal
+EventDetailsModal.propTypes = {
+  event: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onBuyTickets: PropTypes.func.isRequired,
+};
+
+EventDetails.propTypes = {
+  event: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    date: PropTypes.string.isRequired,
+    location: PropTypes.string.isRequired,
+    image: PropTypes.string,
+    description: PropTypes.string,
+  }).isRequired,
+  onDetailsClick: PropTypes.func.isRequired,
+};
 
 export default Home;

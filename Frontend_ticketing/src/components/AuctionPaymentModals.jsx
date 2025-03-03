@@ -1,6 +1,5 @@
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "../pages/CheckoutForm";
-import AptosBooking from "./AptosBooking";
 import PropTypes from "prop-types";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -43,33 +42,8 @@ export const AuctionSolanaModal = ({
   </div>
 );
 
-export const AuctionAptosModal = ({ auction, onSuccess }) => (
-  <div className="p-6">
-    <h2 className="text-2xl font-bold mb-6">
-      Complete Auction Payment with Aptos
-    </h2>
-    <AptosBooking
-      event={{
-        name: auction.eventName,
-        price: auction.currentBid,
-      }}
-      selectedSeats={[auction.seat]}
-      onSuccess={onSuccess}
-    />
-  </div>
-);
-
 AuctionStripeModal.propTypes = {
   amount: PropTypes.number.isRequired,
-  onSuccess: PropTypes.func.isRequired,
-};
-
-AuctionAptosModal.propTypes = {
-  auction: PropTypes.shape({
-    eventName: PropTypes.string.isRequired,
-    currentBid: PropTypes.number.isRequired,
-    seat: PropTypes.string.isRequired,
-  }).isRequired,
   onSuccess: PropTypes.func.isRequired,
 };
 

@@ -11,7 +11,6 @@ import Modal from "./modal";
 import {
   AuctionStripeModal,
   AuctionSolanaModal,
-  AuctionAptosModal,
 } from "../components/AuctionPaymentModals";
 
 const AuctionRoom = () => {
@@ -43,7 +42,7 @@ const AuctionRoom = () => {
   const fetchLatestAuctionDetails = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auctionitems`,
+        import.meta.env.VITE_BACKEND_URL + `/auctionrooms/auctionitems`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -70,7 +69,7 @@ const AuctionRoom = () => {
   }, [auctionId]);
 
   useEffect(() => {
-    const newSocket = io("https://dtix-backend-7f609a0e60c3.herokuapp.com", {
+    const newSocket = io(import.meta.env.VITE_BACKEND_URL, {
       transports: ["websocket", "polling"],
     });
     setSocket(newSocket);
@@ -195,7 +194,8 @@ const AuctionRoom = () => {
 
     try {
       await axios.post(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auction/${auctionId}/bid`,
+        import.meta.env.VITE_BACKEND_URL +
+          `/auctionrooms/auction/${auctionId}/bid`,
         { bidAmount: parsedBidAmount },
         {
           headers: {
@@ -220,7 +220,8 @@ const AuctionRoom = () => {
   const handlePaymentSuccess = async (txHash, method) => {
     try {
       await axios.post(
-        `https://dtix-backend-7f609a0e60c3.herokuapp.com/auctionrooms/auctions/${auctionId}/complete`,
+        import.meta.env.VITE_BACKEND_URL +
+          `/auctionrooms/auctions/${auctionId}/complete`,
         {
           txHash,
           paymentMethod: method,
@@ -343,12 +344,6 @@ const AuctionRoom = () => {
               >
                 Pay with Solana
               </button>
-              <button
-                onClick={() => setPaymentMethod("aptos")}
-                className="w-full bg-gradient-to-r from-purple-400 to-purple-600 text-white px-4 py-3 rounded-lg"
-              >
-                Pay with Aptos
-              </button>
             </div>
           </div>
         </Modal>
@@ -370,15 +365,6 @@ const AuctionRoom = () => {
             userPublicKey={userPublicKey}
             setUserPublicKey={setUserPublicKey}
             handlePayment={() => handlePaymentSuccess(null, "solana")}
-          />
-        </Modal>
-      )}
-
-      {paymentMethod === "aptos" && (
-        <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
-          <AuctionAptosModal
-            auction={auctionDetails}
-            onSuccess={(tx) => handlePaymentSuccess(tx, "aptos")}
           />
         </Modal>
       )}

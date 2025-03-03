@@ -15,7 +15,7 @@ function Profile() {
     const fetchUserData = async () => {
       try {
         const response = await axios.get(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/profile",
+          import.meta.env.VITE_BACKEND_URL + "/auth/profile",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -38,7 +38,7 @@ function Profile() {
       }
 
       const response = await axios.get(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/auction-won-tickets",
+        import.meta.env.VITE_BACKEND_URL + "/tickets/auction-won-tickets",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,9 +61,7 @@ function Profile() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/logout"
-      );
+      await axios.post(import.meta.env.VITE_BACKEND_URL + "/auth/logout");
       localStorage.removeItem("token");
       navigate("/login");
     } catch (error) {

@@ -8,7 +8,6 @@ import Modal from "./modal";
 import { jsPDF } from "jspdf";
 import EventCard from "../components/EventCard";
 import TicketDetails from "../components/TicketDetails";
-import AptosBooking from "../components/AptosBooking.tsx";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
@@ -31,7 +30,7 @@ const Events = () => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/events"
+          import.meta.env.VITE_BACKEND_URL + "/events"
         );
         setEvents(response.data);
         setIsLoading(false);
@@ -60,7 +59,7 @@ const Events = () => {
   const handlePaymentSuccess = async () => {
     try {
       const response = await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/book",
+        import.meta.env.VITE_BACKEND_URL + "/tickets/book",
         {
           eventId: selectedEvent._id,
           quantity: selectedSeats.length,
@@ -92,7 +91,7 @@ const Events = () => {
 
       // First process the Solana payment
       const paymentResponse = await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/payment/solana",
+        import.meta.env.VITE_BACKEND_URL + "/payment/solana",
         {
           amount: amount,
           userPublicKey: userPublicKey,
@@ -107,7 +106,7 @@ const Events = () => {
       if (paymentResponse.data.success) {
         // If payment successful, create the ticket
         const ticketResponse = await axios.post(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/book",
+          import.meta.env.VITE_BACKEND_URL + "/tickets/book",
           {
             eventId: selectedEvent._id,
             quantity: selectedSeats.length,
@@ -268,25 +267,6 @@ const Events = () => {
                   >
                     Pay with Solana
                   </button>
-                  <AptosBooking
-                    event={{
-                      name: selectedEvent.name,
-                      price: selectedEvent.price,
-                      venue: selectedEvent.location,
-                      date: selectedEvent.date,
-                    }}
-                    selectedSeats={selectedSeats}
-                    onSuccess={(txHash) => {
-                      setTicketDetails({
-                        ...selectedEvent,
-                        txHash,
-                        blockchain: "aptos",
-                        seats: selectedSeats,
-                        quantity: selectedSeats.length,
-                      });
-                      setIsPaymentModalOpen(false);
-                    }}
-                  />
                 </div>
               </div>
             </Modal>

@@ -11,7 +11,7 @@ const Search = () => {
   const fetchEventInfo = async (query) => {
     try {
       const response = await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/ai/event-info",
+        import.meta.env.VITE_BACKEND_URL + "/ai/event-info",
         { query },
         {
           headers: {
@@ -82,9 +82,7 @@ const Search = () => {
       {response && (
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <div className="prose max-w-none">
-            <p className="text-gray-700 whitespace-pre-wrap">
-              <ReactMarkdown>{response.answer}</ReactMarkdown>
-            </p>
+            <ReactMarkdown>{response.answer}</ReactMarkdown>
           </div>
 
           {/* Only show event details if available */}

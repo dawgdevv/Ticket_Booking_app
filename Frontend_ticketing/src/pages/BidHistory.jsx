@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-
+import Proptypes from "prop-types";
 const BidHistory = ({ history }) => {
   return (
     <div className="bid-history">
@@ -26,6 +26,10 @@ const BidHistory = ({ history }) => {
       </ul>
     </div>
   );
+};
+
+BidHistory.propTypes = {
+  history: Proptypes.array.isRequired,
 };
 
 export default BidHistory;

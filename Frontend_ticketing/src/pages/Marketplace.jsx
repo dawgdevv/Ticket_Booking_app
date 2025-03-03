@@ -28,7 +28,7 @@ const TicketMarketplace = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/marketplace",
+          import.meta.env.VITE_BACKEND_URL + "/tickets/marketplace",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -55,7 +55,7 @@ const TicketMarketplace = () => {
   const handlePaymentSuccess = async () => {
     try {
       const response = await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/tickets/purchase",
+        import.meta.env.VITE_BACKEND_URL + "/tickets/purchase",
         { resellTicketId: selectedTicket._id },
         {
           headers: {
@@ -88,7 +88,7 @@ const TicketMarketplace = () => {
       const amount = selectedTicket.price;
 
       const paymentResponse = await axios.post(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/payment/solana",
+        import.meta.env.VITE_BACKEND_URL + "/payment/solana",
         {
           amount,
           userPublicKey,
@@ -102,7 +102,7 @@ const TicketMarketplace = () => {
 
       if (paymentResponse.data.success) {
         const purchaseResponse = await axios.post(
-          "/api/tickets/purchase-solana",
+          import.meta.env.VITE_BACKEND_URL + "/tickets/purchase-solana",
           {
             resellTicketId: selectedTicket._id,
             userPublicKey,
@@ -166,7 +166,9 @@ const TicketMarketplace = () => {
         ticket.ticket.event.name
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        ticket.seller.toLowerCase().includes(searchTerm.toLowerCase())
+        ticket.ticket.owner.username
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       if (sortBy === "date")

@@ -11,7 +11,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await fetch(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/login",
+        import.meta.env.VITE_BACKEND_URL + "/auth/login",
         {
           method: "POST",
           headers: {

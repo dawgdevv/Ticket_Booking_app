@@ -31,7 +31,7 @@ const CheckoutForm = ({ amount, onPaymentSuccess }) => {
     const createPaymentIntent = async () => {
       try {
         const response = await axios.post(
-          "https://dtix-backend-7f609a0e60c3.herokuapp.com/payment/create-payment-intent",
+          import.meta.env.VITE_BACKEND_URL + "/payment/create-payment-intent",
           { amount },
           {
             headers: {

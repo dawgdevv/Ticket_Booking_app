@@ -12,7 +12,7 @@ const Signup = () => {
     e.preventDefault();
     try {
       const response = await fetch(
-        "https://dtix-backend-7f609a0e60c3.herokuapp.com/auth/signup",
+        import.meta.env.VITE_BACKEND_URL + "/auth/signup",
         {
           method: "POST",
           headers: {

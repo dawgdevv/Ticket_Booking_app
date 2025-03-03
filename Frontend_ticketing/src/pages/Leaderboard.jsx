@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import Proptypes from "prop-types";
 const Leaderboard = ({ leaderboard }) => {
   return (
     <div className="leaderboard">
@@ -20,6 +20,10 @@ const Leaderboard = ({ leaderboard }) => {
       </ul>
     </div>
   );
+};
+
+Leaderboard.propTypes = {
+  leaderboard: Proptypes.array.isRequired,
 };
 
 export default Leaderboard;
