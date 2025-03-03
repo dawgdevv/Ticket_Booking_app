@@ -55,6 +55,10 @@ app.use(
 	})
 );
 
+app.get("/", (req, res) => {
+	res.send("Backend server is running.");
+});
+
 // Routes
 app.use("/auth", userRoutes);
 app.use("/events", eventRoutes);
