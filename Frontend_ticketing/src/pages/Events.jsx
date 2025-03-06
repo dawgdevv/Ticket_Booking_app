@@ -3,11 +3,14 @@ import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { motion, AnimatePresence } from "framer-motion";
+import { KeychainSDK } from "keychain-sdk";
+import { jsPDF } from "jspdf";
 import CheckoutForm from "./CheckoutForm.jsx";
 import Modal from "./modal";
-import { jsPDF } from "jspdf";
 import EventCard from "../components/EventCard";
 import TicketDetails from "../components/TicketDetails";
+import HiveAuth from "../components/HiveAuth";
+import HivePayment from "../components/HivePayment";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
@@ -20,10 +23,42 @@ const Events = () => {
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [ticketDetails, setTicketDetails] = useState(null);
-  const [userPublicKey, setUserPublicKey] = useState("");
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hivePaymentResult, setHivePaymentResult] = useState(null);
+
+  // Hive related states
+  const [hiveUser, setHiveUser] = useState(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isHiveKeychainAvailable, setIsHiveKeychainAvailable] = useState(false);
+
+  // Check if Hive Keychain is available and get stored user
+  useEffect(() => {
+    const checkKeychain = async () => {
+      try {
+        const keychain = new KeychainSDK(window);
+        const isInstalled = await keychain.isKeychainInstalled();
+        setIsHiveKeychainAvailable(isInstalled);
+      } catch (error) {
+        console.error("Error checking Keychain:", error);
+        setIsHiveKeychainAvailable(false);
+      }
+    };
+
+    checkKeychain();
+
+    // Check if user is already signed in with Hive
+    const storedUsername = localStorage.getItem("hiveName");
+    const storedPublicKey = localStorage.getItem("hivePublicKey");
+
+    if (storedUsername && storedPublicKey) {
+      setHiveUser({
+        username: storedUsername,
+        publicKey: storedPublicKey,
+      });
+    }
+  }, []);
 
   // Fetch events
   useEffect(() => {
@@ -55,8 +90,54 @@ const Events = () => {
     return selectedEvent.price * selectedSeats.length;
   };
 
-  // Handle payment success
-  const handlePaymentSuccess = async () => {
+  // Broadcast ticket purchase to Hive blockchain
+  const broadcastTicketPurchase = async (ticketData, paymentDetails) => {
+    if (!hiveUser || !isHiveKeychainAvailable) {
+      console.log("Hive user not authenticated or Keychain not available");
+      return false;
+    }
+
+    try {
+      const keychain = new KeychainSDK(window);
+
+      const memo = JSON.stringify({
+        app: "TicketBookingApp",
+        action: "ticket_purchase",
+        event: ticketData.event.name,
+        seats: ticketData.seats,
+        timestamp: new Date().toISOString(),
+        ticket_id: ticketData._id,
+        payment: paymentDetails || "regular_payment",
+      });
+
+      const broadcastData = {
+        username: hiveUser.username,
+        operations: [
+          [
+            "custom_json",
+            {
+              required_auths: [],
+              required_posting_auths: [hiveUser.username],
+              id: "ticket_booking_app",
+              json: memo,
+            },
+          ],
+        ],
+        method: "Posting",
+      };
+
+      const result = await keychain.requestBroadcast(broadcastData);
+      console.log("Broadcast result:", result);
+
+      return result.success;
+    } catch (error) {
+      console.error("Error broadcasting to Hive:", error);
+      return false;
+    }
+  };
+
+  // Handle payment success (for both Stripe and Hive)
+  const handlePaymentSuccess = async (paymentDetails = null) => {
     try {
       const response = await axios.post(
         import.meta.env.VITE_BACKEND_URL + "/tickets/book",
@@ -64,6 +145,9 @@ const Events = () => {
           eventId: selectedEvent._id,
           quantity: selectedSeats.length,
           seats: selectedSeats,
+          paymentMethod: paymentDetails ? "hive" : "stripe",
+          paymentDetails: paymentDetails || {},
+          simulatedPayment: paymentDetails?.simulatedPayment || false,
         },
         {
           headers: {
@@ -71,65 +155,60 @@ const Events = () => {
           },
         }
       );
-      setTicketDetails(response.data.ticket);
+
+      const ticketData = response.data.ticket;
+      setTicketDetails(ticketData);
       setIsPaymentModalOpen(false);
+      setPaymentMethod(null);
+
+      // Store payment result for Hive payments
+      if (paymentDetails) {
+        setHivePaymentResult(paymentDetails);
+        // Show a success message for Hive payment
+        setTimeout(() => {
+          const messagePrefix = paymentDetails.simulatedPayment
+            ? "Test payment successful!"
+            : "Payment successful!";
+          alert(
+            `${messagePrefix} Your ticket for ${ticketData.event.name} has been booked using HIVE blockchain.`
+          );
+        }, 500);
+      } else {
+        // Show a success message for regular payment
+        setTimeout(() => {
+          alert(
+            `Payment successful! Your ticket for ${ticketData.event.name} has been booked.`
+          );
+        }, 500);
+      }
+
+      // Broadcast to Hive blockchain if user is authenticated and payment was made with HIVE
+      if (hiveUser && paymentDetails) {
+        await broadcastTicketPurchase(ticketData, paymentDetails);
+      }
     } catch (error) {
       console.error("Booking failed:", error);
       alert("Booking failed. Please try again.");
     }
   };
 
-  // Handle Solana payment
-  const handleSolanaPayment = async () => {
-    if (!selectedEvent || !userPublicKey) {
-      alert("Please enter your Solana public key.");
-      return;
-    }
+  // Handle payment failure
+  const handlePaymentFailure = (error) => {
+    console.error("Payment failed:", error);
+    alert(`Payment failed: ${error}`);
+  };
 
-    try {
-      const amount = calculateTotalPrice(); // Get the total price
+  // Handle Hive sign in
+  const handleHiveSignIn = (userData) => {
+    setHiveUser(userData);
+    setIsAuthModalOpen(false);
+  };
 
-      // First process the Solana payment
-      const paymentResponse = await axios.post(
-        import.meta.env.VITE_BACKEND_URL + "/payment/solana",
-        {
-          amount: amount,
-          userPublicKey: userPublicKey,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      if (paymentResponse.data.success) {
-        // If payment successful, create the ticket
-        const ticketResponse = await axios.post(
-          import.meta.env.VITE_BACKEND_URL + "/tickets/book",
-          {
-            eventId: selectedEvent._id,
-            quantity: selectedSeats.length,
-            seats: selectedSeats,
-            paymentSignature: paymentResponse.data.signature,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        setTicketDetails(ticketResponse.data.ticket);
-        setIsPaymentModalOpen(false);
-        setPaymentMethod(null);
-      }
-    } catch (error) {
-      console.error("Solana payment failed:", error);
-      alert(
-        error.response?.data?.message || "Payment failed. Please try again."
-      );
-    }
+  // Sign out of Hive
+  const handleHiveSignOut = () => {
+    localStorage.removeItem("hiveName");
+    localStorage.removeItem("hivePublicKey");
+    setHiveUser(null);
   };
 
   // Generate PDF ticket
@@ -149,8 +228,28 @@ const Events = () => {
     doc.text(`Quantity: ${ticketDetails?.quantity || "N/A"}`, 20, 80);
     doc.text(`Ticket ID: ${ticketDetails?._id || "N/A"}`, 20, 90);
 
+    // Add payment method info
+    const paymentMethodText = hivePaymentResult
+      ? hivePaymentResult.simulatedPayment
+        ? "HIVE Blockchain (Test Mode)"
+        : "HIVE Blockchain"
+      : "Credit Card";
+    doc.text(`Payment Method: ${paymentMethodText}`, 20, 100);
+
+    if (hivePaymentResult) {
+      doc.text(`Transaction ID: ${hivePaymentResult.transactionId}`, 20, 110);
+      if (hivePaymentResult.simulatedPayment) {
+        doc.text(
+          "Note: This was a test transaction using Resource Credits",
+          20,
+          120
+        );
+      }
+    }
+
     doc.save(`${ticketDetails?._id}_ticket.pdf`);
     setTicketDetails(null);
+    setHivePaymentResult(null);
   };
 
   // Format price
@@ -205,9 +304,32 @@ const Events = () => {
       className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-blue-100"
     >
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-center text-amber-800">
-          Upcoming Events
-        </h1>
+        {/* Hive Authentication Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold text-amber-800">Upcoming Events</h1>
+          <div>
+            {hiveUser ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-green-600 font-medium">
+                  @{hiveUser.username}
+                </span>
+                <button
+                  onClick={handleHiveSignOut}
+                  className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+              >
+                Sign in with Hive
+              </button>
+            )}
+          </div>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center">
@@ -230,6 +352,15 @@ const Events = () => {
         )}
 
         <AnimatePresence>
+          {/* Hive Auth Modal */}
+          {isAuthModalOpen && (
+            <Modal isOpen={true} onClose={() => setIsAuthModalOpen(false)}>
+              <div className="p-6">
+                <HiveAuth onSignIn={handleHiveSignIn} />
+              </div>
+            </Modal>
+          )}
+
           {isSeatModalOpen && (
             <Modal isOpen={true} onClose={() => setIsSeatModalOpen(false)}>
               <div className="p-6">
@@ -237,6 +368,10 @@ const Events = () => {
                 {renderSeatGrid()}
                 <button
                   onClick={() => {
+                    if (selectedSeats.length === 0) {
+                      alert("Please select at least one seat");
+                      return;
+                    }
                     setIsSeatModalOpen(false);
                     setIsPaymentModalOpen(true);
                   }}
@@ -255,17 +390,63 @@ const Events = () => {
                   Choose Payment Method
                 </h2>
                 <div className="space-y-4">
+                  {/* Hive Payment Option - only show if logged in */}
+                  {hiveUser ? (
+                    <button
+                      onClick={() => setPaymentMethod("hive")}
+                      className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white px-4 py-3 rounded-lg flex items-center justify-center"
+                    >
+                      <img
+                        src="https://cryptologos.cc/logos/hive-blockchain-hive-logo.png"
+                        alt="Hive Logo"
+                        className="h-6 mr-2"
+                      />
+                      Pay with HIVE
+                    </button>
+                  ) : (
+                    <div className="p-3 bg-gray-100 rounded-lg mb-4">
+                      <div className="flex items-center">
+                        <div className="mr-3 text-gray-400">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-gray-600 font-medium">
+                            HIVE Payment
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            <button
+                              onClick={() => {
+                                setIsPaymentModalOpen(false);
+                                setIsAuthModalOpen(true);
+                              }}
+                              className="text-blue-600 hover:underline"
+                            >
+                              Sign in with Hive
+                            </button>{" "}
+                            to enable blockchain payments
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Card Payment Option - always available */}
                   <button
                     onClick={() => setPaymentMethod("stripe")}
                     className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 rounded-lg"
                   >
                     Pay with Card
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod("solana")}
-                    className="w-full bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-3 rounded-lg"
-                  >
-                    Pay with Solana
                   </button>
                 </div>
               </div>
@@ -274,31 +455,55 @@ const Events = () => {
 
           {paymentMethod && (
             <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
-              {paymentMethod === "stripe" ? (
+              {paymentMethod === "stripe" && (
                 <Elements stripe={stripePromise}>
                   <CheckoutForm
                     amount={calculateTotalPrice() * 100}
                     onPaymentSuccess={handlePaymentSuccess}
                   />
                 </Elements>
-              ) : (
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Pay with Solana</h2>
-                  <input
-                    type="text"
-                    value={userPublicKey}
-                    onChange={(e) => setUserPublicKey(e.target.value)}
-                    placeholder="Enter your Solana public key"
-                    className="w-full p-2 border border-gray-300 rounded mb-4"
-                  />
+              )}
+
+              {paymentMethod === "hive" && hiveUser ? (
+                <HivePayment
+                  amount={calculateTotalPrice()}
+                  username={hiveUser.username}
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onPaymentFailure={handlePaymentFailure}
+                />
+              ) : paymentMethod === "hive" ? (
+                <div className="p-6 text-center">
+                  <div className="mb-4 text-amber-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-12 w-12 mx-auto"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">
+                    Authentication Required
+                  </h3>
+                  <p className="mb-4 text-gray-600">
+                    You need to sign in with Hive to use HIVE payments.
+                  </p>
                   <button
-                    onClick={handleSolanaPayment}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded"
+                    onClick={() => {
+                      setPaymentMethod(null);
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
                   >
-                    Complete Payment
+                    Sign in with Hive
                   </button>
                 </div>
-              )}
+              ) : null}
             </Modal>
           )}
 
@@ -308,6 +513,10 @@ const Events = () => {
                 ticket={ticketDetails}
                 formatPrice={formatPrice}
                 onDownload={generateTicketPDF}
+                hiveUser={hiveUser}
+                isBroadcasted={hiveUser !== null}
+                paymentMethod={hivePaymentResult ? "hive" : "card"}
+                hivePayment={hivePaymentResult}
               />
             </Modal>
           )}

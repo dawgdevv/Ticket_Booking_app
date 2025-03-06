@@ -8,10 +8,7 @@ import BidHistory from "./BidHistory";
 import Leaderboard from "./Leaderboard";
 import useSound from "use-sound";
 import Modal from "./modal";
-import {
-  AuctionStripeModal,
-  AuctionSolanaModal,
-} from "../components/AuctionPaymentModals";
+import { AuctionStripeModal } from "../components/AuctionPaymentModals";
 
 const AuctionRoom = () => {
   const { auctionId } = useParams();
@@ -31,7 +28,6 @@ const AuctionRoom = () => {
   const [isBiddingWar, setIsBiddingWar] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
-  const [userPublicKey, setUserPublicKey] = useState("");
 
   const [playBidSound] = useSound("/sounds/bid.mp3");
   const [playCountdownSound] = useSound("/sounds/countdown.mp3");
@@ -338,12 +334,6 @@ const AuctionRoom = () => {
               >
                 Pay with Card
               </button>
-              <button
-                onClick={() => setPaymentMethod("solana")}
-                className="w-full bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-3 rounded-lg"
-              >
-                Pay with Solana
-              </button>
             </div>
           </div>
         </Modal>
@@ -354,17 +344,6 @@ const AuctionRoom = () => {
           <AuctionStripeModal
             amount={highestBid * 100}
             onSuccess={(tx) => handlePaymentSuccess(tx, "stripe")}
-          />
-        </Modal>
-      )}
-
-      {paymentMethod === "solana" && (
-        <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
-          <AuctionSolanaModal
-            amount={highestBid}
-            userPublicKey={userPublicKey}
-            setUserPublicKey={setUserPublicKey}
-            handlePayment={() => handlePaymentSuccess(null, "solana")}
           />
         </Modal>
       )}

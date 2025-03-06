@@ -16,46 +16,7 @@ export const AuctionStripeModal = ({ amount, onSuccess }) => (
   </div>
 );
 
-export const AuctionSolanaModal = ({
-  amount,
-  userPublicKey,
-  setUserPublicKey,
-  handlePayment,
-}) => (
-  <div className="p-6">
-    <h2 className="text-2xl font-bold mb-6">
-      Complete Auction Payment with Solana
-    </h2>
-    <input
-      type="text"
-      value={userPublicKey}
-      onChange={(e) => setUserPublicKey(e.target.value)}
-      placeholder="Your Solana Wallet Address"
-      className="w-full p-2 border rounded mb-4"
-    />
-    <button
-      onClick={handlePayment}
-      className="w-full bg-blue-500 text-white p-3 rounded"
-    >
-      Pay {amount} SOL
-    </button>
-  </div>
-);
-
 AuctionStripeModal.propTypes = {
   amount: PropTypes.number.isRequired,
-  onSuccess: PropTypes.func.isRequired,
-};
-
-AuctionSolanaModal.propTypes = {
-  amount: PropTypes.number.isRequired,
-  userPublicKey: PropTypes.string.isRequired,
-  setUserPublicKey: PropTypes.func.isRequired,
-  handlePayment: PropTypes.func.isRequired,
-  auction: PropTypes.shape({
-    eventName: PropTypes.string.isRequired,
-    currentBid: PropTypes.number.isRequired,
-    seat: PropTypes.string.isRequired,
-  }).isRequired,
   onSuccess: PropTypes.func.isRequired,
 };
