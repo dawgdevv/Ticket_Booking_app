@@ -17,7 +17,6 @@ const TicketMarketplace = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [userPublicKey, setUserPublicKey] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -75,61 +74,6 @@ const TicketMarketplace = () => {
     } catch (error) {
       console.error("Purchase failed:", error);
       alert("Purchase failed. Please try again.");
-    }
-  };
-
-  const handleSolanaPayment = async () => {
-    if (!selectedTicket || !userPublicKey) {
-      alert("Please enter your Solana public key.");
-      return;
-    }
-
-    try {
-      const amount = selectedTicket.price;
-
-      const paymentResponse = await axios.post(
-        import.meta.env.VITE_BACKEND_URL + "/payment/solana",
-        {
-          amount,
-          userPublicKey,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      if (paymentResponse.data.success) {
-        const purchaseResponse = await axios.post(
-          import.meta.env.VITE_BACKEND_URL + "/tickets/purchase-solana",
-          {
-            resellTicketId: selectedTicket._id,
-            userPublicKey,
-            paymentSignature: paymentResponse.data.signature,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        setTicketDetails(purchaseResponse.data.ticket);
-        setIsPaymentModalOpen(false);
-        setPaymentMethod(null);
-
-        // Update tickets list
-        const updatedTickets = resaleTickets.filter(
-          (ticket) => ticket._id !== selectedTicket._id
-        );
-        setResaleTickets(updatedTickets);
-      }
-    } catch (error) {
-      console.error("Solana payment failed:", error);
-      alert(
-        error.response?.data?.message || "Payment failed. Please try again."
-      );
     }
   };
 
@@ -244,7 +188,8 @@ const TicketMarketplace = () => {
                 <button
                   onClick={() => {
                     setSelectedTicket(ticket);
-                    setIsPaymentModalOpen(true);
+                    // Go directly to Stripe checkout without showing payment method selection
+                    setPaymentMethod("stripe");
                   }}
                   className="w-full bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 transition-colors duration-300"
                 >
@@ -256,57 +201,16 @@ const TicketMarketplace = () => {
         )}
 
         <AnimatePresence>
-          {isPaymentModalOpen && (
-            <Modal isOpen={true} onClose={() => setIsPaymentModalOpen(false)}>
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-6">
-                  Choose Payment Method
-                </h2>
-                <div className="space-y-4">
-                  <button
-                    onClick={() => setPaymentMethod("stripe")}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 rounded-lg"
-                  >
-                    Pay with Card
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod("solana")}
-                    className="w-full bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-3 rounded-lg"
-                  >
-                    Pay with Solana
-                  </button>
-                </div>
-              </div>
-            </Modal>
-          )}
+          {/* We're removing the payment method selection modal and going directly to Stripe */}
 
           {paymentMethod && (
             <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
-              {paymentMethod === "stripe" ? (
-                <Elements stripe={stripePromise}>
-                  <CheckoutForm
-                    amount={selectedTicket?.price * 100}
-                    onPaymentSuccess={handlePaymentSuccess}
-                  />
-                </Elements>
-              ) : (
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Pay with Solana</h2>
-                  <input
-                    type="text"
-                    value={userPublicKey}
-                    onChange={(e) => setUserPublicKey(e.target.value)}
-                    placeholder="Enter your Solana public key"
-                    className="w-full p-2 border border-gray-300 rounded mb-4"
-                  />
-                  <button
-                    onClick={handleSolanaPayment}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded"
-                  >
-                    Complete Payment
-                  </button>
-                </div>
-              )}
+              <Elements stripe={stripePromise}>
+                <CheckoutForm
+                  amount={selectedTicket?.price * 100}
+                  onPaymentSuccess={handlePaymentSuccess}
+                />
+              </Elements>
             </Modal>
           )}
 
