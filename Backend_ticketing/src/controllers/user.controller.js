@@ -1,6 +1,9 @@
 import Users from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Ticket from "../models/tickets.model.js";
+import User from "../models/user.model.js";
+
 const signup = async (req, res) => {
 	const { username, email, password } = req.body;
 	const usercheck = await Users.findOne({ email });
@@ -111,4 +114,21 @@ const getUserProfile = async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 };
+
+export const getNFTTickets = async (req, res) => {
+	try {
+		// Find tickets owned by the user that have NFT tokenId
+		const nftTickets = await Ticket.find({
+			owner: req.user.id,
+			tokenId: { $ne: null }, // Has a tokenId (is an NFT)
+			onChain: true,
+		}).populate("event");
+
+		res.status(200).json(nftTickets);
+	} catch (error) {
+		console.error("Error fetching user NFT tickets:", error);
+		res.status(500).json({ message: error.message });
+	}
+};
+
 export { signup, login, logout, update, getUserTickets, getUserProfile };

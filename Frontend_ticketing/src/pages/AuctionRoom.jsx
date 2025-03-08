@@ -9,6 +9,7 @@ import Leaderboard from "./Leaderboard";
 import useSound from "use-sound";
 import Modal from "./modal";
 import { AuctionStripeModal } from "../components/AuctionPaymentModals";
+import MoonPayPayment from "../components/MoonPayPayment";
 
 const AuctionRoom = () => {
   const { auctionId } = useParams();
@@ -334,6 +335,26 @@ const AuctionRoom = () => {
               >
                 Pay with Card
               </button>
+
+              <button
+                onClick={() => setPaymentMethod("moonpay")}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-lg flex items-center justify-center"
+              >
+                <svg className="h-6 w-6 mr-2" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                </svg>
+                Pay with MoonPay
+              </button>
             </div>
           </div>
         </Modal>
@@ -344,6 +365,20 @@ const AuctionRoom = () => {
           <AuctionStripeModal
             amount={highestBid * 100}
             onSuccess={(tx) => handlePaymentSuccess(tx, "stripe")}
+          />
+        </Modal>
+      )}
+
+      {paymentMethod === "moonpay" && (
+        <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
+          <MoonPayPayment
+            amount={highestBid * 100}
+            onPaymentSuccess={(data) =>
+              handlePaymentSuccess(data.transactionId, "moonpay")
+            }
+            onPaymentFailure={(error) =>
+              console.error("MoonPay payment failed:", error)
+            }
           />
         </Modal>
       )}

@@ -7,6 +7,7 @@ import Modal from "./modal.jsx";
 import CheckoutForm from "./CheckoutForm.jsx";
 import { jsPDF } from "jspdf";
 import TicketDetails from "../components/TicketDetails";
+import NFTPurchaseForm from "../components/NFTPurchaseForm";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
@@ -21,27 +22,30 @@ const TicketMarketplace = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [ticketDetails, setTicketDetails] = useState(null);
+  const [showNFTPurchaseModal, setShowNFTPurchaseModal] = useState(false);
 
   useEffect(() => {
-    const fetchResellTickets = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(
-          import.meta.env.VITE_BACKEND_URL + "/tickets/marketplace",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setResaleTickets(response.data);
-      } catch (error) {
-        console.error("Error fetching resell tickets:", error);
-      }
-      setIsLoading(false);
-    };
     fetchResellTickets();
   }, []);
+
+  const fetchResellTickets = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/tickets/marketplace`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setResaleTickets(response.data);
+    } catch (error) {
+      console.error("Error fetching resell tickets:", error);
+      toast.error("Failed to load marketplace tickets");
+    }
+    setIsLoading(false);
+  };
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -54,7 +58,7 @@ const TicketMarketplace = () => {
   const handlePaymentSuccess = async () => {
     try {
       const response = await axios.post(
-        import.meta.env.VITE_BACKEND_URL + "/tickets/purchase",
+        `${import.meta.env.VITE_BACKEND_URL}/tickets/purchase`,
         { resellTicketId: selectedTicket._id },
         {
           headers: {
@@ -71,10 +75,24 @@ const TicketMarketplace = () => {
         (ticket) => ticket._id !== selectedTicket._id
       );
       setResaleTickets(updatedTickets);
+      toast.success("Ticket purchased successfully!");
     } catch (error) {
       console.error("Purchase failed:", error);
-      alert("Purchase failed. Please try again.");
+      toast.error("Purchase failed. Please try again.");
     }
+  };
+
+  const handleNFTPurchaseSuccess = async (data) => {
+    // Update tickets list after successful NFT purchase
+    const updatedTickets = resaleTickets.filter(
+      (ticket) => ticket._id !== selectedTicket._id
+    );
+    setResaleTickets(updatedTickets);
+    setShowNFTPurchaseModal(false);
+    toast.success("NFT ticket purchased successfully!");
+
+    // Set ticket details for PDF generation
+    setTicketDetails(data.ticket);
   };
 
   const generateTicketPDF = () => {
@@ -93,6 +111,11 @@ const TicketMarketplace = () => {
     doc.text(`Quantity: ${ticketDetails?.quantity || "N/A"}`, 20, 80);
     doc.text(`Ticket ID: ${ticketDetails?._id || "N/A"}`, 20, 90);
 
+    if (ticketDetails?.tokenId) {
+      doc.text(`Token ID: ${ticketDetails?.tokenId || "N/A"}`, 20, 100);
+      doc.text(`NFT Ticket: Yes`, 20, 110);
+    }
+
     doc.save(`${ticketDetails?._id}_ticket.pdf`);
     setTicketDetails(null);
   };
@@ -101,25 +124,37 @@ const TicketMarketplace = () => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
+      maximumFractionDigits: 0,
     }).format(price);
   };
 
   const filteredAndSortedTickets = resaleTickets
-    .filter(
-      (ticket) =>
-        ticket.ticket.event.name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        ticket.ticket.owner.username
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-    )
+    .filter((ticket) => {
+      // Safe access to nested properties
+      const eventName = ticket.ticket?.event?.name || "";
+      const sellerName = ticket.seller?.username || "";
+
+      return (
+        eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sellerName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    })
     .sort((a, b) => {
-      if (sortBy === "date")
-        return new Date(a.ticket.event.date) - new Date(b.ticket.event.date);
+      if (sortBy === "date") {
+        const dateA = a.ticket?.event?.date
+          ? new Date(a.ticket.event.date)
+          : new Date();
+        const dateB = b.ticket?.event?.date
+          ? new Date(b.ticket.event.date)
+          : new Date();
+        return dateA - dateB;
+      }
       if (sortBy === "price") return a.price - b.price;
-      if (sortBy === "event")
-        return a.ticket.event.name.localeCompare(b.ticket.event.name);
+      if (sortBy === "event") {
+        const nameA = a.ticket?.event?.name || "";
+        const nameB = b.ticket?.event?.name || "";
+        return nameA.localeCompare(nameB);
+      }
       return 0;
     });
 
@@ -163,6 +198,15 @@ const TicketMarketplace = () => {
           <div className="flex justify-center">
             <div className="animate-spin h-12 w-12 border-4 border-amber-500 rounded-full border-t-transparent" />
           </div>
+        ) : filteredAndSortedTickets.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow-md">
+            <h3 className="text-xl font-medium text-gray-600">
+              No tickets available
+            </h3>
+            <p className="text-gray-500 mt-2">
+              Check back later for more tickets
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedTickets.map((ticket) => (
@@ -171,11 +215,26 @@ const TicketMarketplace = () => {
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
               >
                 <h2 className="text-xl font-semibold mb-2 text-black">
-                  {ticket.ticket.event.name}
+                  {ticket.ticket?.event?.name || "Event name unavailable"}
+                  {ticket.isNFT && (
+                    <span className="ml-2 bg-blue-500 text-xs text-white py-1 px-2 rounded-full">
+                      NFT
+                    </span>
+                  )}
                 </h2>
                 <p className="text-gray-600 mb-1">
                   <span className="font-medium">Date:</span>{" "}
-                  {new Date(ticket.ticket.event.date).toLocaleDateString()}
+                  {ticket.ticket?.event?.date
+                    ? new Date(ticket.ticket.event.date).toLocaleDateString()
+                    : "Date unavailable"}
+                </p>
+                <p className="text-gray-600 mb-1">
+                  <span className="font-medium">Venue:</span>{" "}
+                  {ticket.ticket?.venue || "Venue unavailable"}
+                </p>
+                <p className="text-gray-600 mb-1">
+                  <span className="font-medium">Seats:</span>{" "}
+                  {ticket.ticket?.seats?.join(", ") || "Seats unavailable"}
                 </p>
                 <p className="text-gray-600 mb-1">
                   <span className="font-medium">Price:</span>{" "}
@@ -183,17 +242,34 @@ const TicketMarketplace = () => {
                 </p>
                 <p className="text-gray-600 mb-4">
                   <span className="font-medium">Seller:</span>{" "}
-                  {ticket.ticket.owner.username}
+                  {ticket.seller?.username || "Seller unavailable"}
                 </p>
+                {ticket.isNFT && (
+                  <div className="mt-2 mb-4 p-2 bg-blue-50 rounded-md">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-medium">Token ID:</span>{" "}
+                      <span className="font-mono">{ticket.tokenId}</span>
+                    </p>
+                  </div>
+                )}
                 <button
                   onClick={() => {
                     setSelectedTicket(ticket);
-                    // Go directly to Stripe checkout without showing payment method selection
-                    setPaymentMethod("stripe");
+                    if (ticket.isNFT) {
+                      // Open NFT purchase modal that will ask for wallet address
+                      setShowNFTPurchaseModal(true);
+                    } else {
+                      // Go directly to Stripe checkout for regular tickets
+                      setPaymentMethod("stripe");
+                    }
                   }}
-                  className="w-full bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 transition-colors duration-300"
+                  className={`w-full ${
+                    ticket.isNFT
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-amber-600 hover:bg-amber-700"
+                  } text-white px-4 py-2 rounded transition-colors duration-300`}
                 >
-                  Purchase Ticket
+                  {ticket.isNFT ? "Purchase NFT Ticket" : "Purchase Ticket"}
                 </button>
               </div>
             ))}
@@ -201,8 +277,6 @@ const TicketMarketplace = () => {
         )}
 
         <AnimatePresence>
-          {/* We're removing the payment method selection modal and going directly to Stripe */}
-
           {paymentMethod && (
             <Modal isOpen={true} onClose={() => setPaymentMethod(null)}>
               <Elements stripe={stripePromise}>
@@ -214,12 +288,23 @@ const TicketMarketplace = () => {
             </Modal>
           )}
 
+          {showNFTPurchaseModal && selectedTicket && (
+            <Modal isOpen={true} onClose={() => setShowNFTPurchaseModal(false)}>
+              <NFTPurchaseForm
+                ticket={selectedTicket}
+                onSuccess={handleNFTPurchaseSuccess}
+                onCancel={() => setShowNFTPurchaseModal(false)}
+              />
+            </Modal>
+          )}
+
           {ticketDetails && (
             <Modal isOpen={true} onClose={() => setTicketDetails(null)}>
               <TicketDetails
                 ticket={ticketDetails}
                 formatPrice={formatPrice}
                 onDownload={generateTicketPDF}
+                isNFT={!!ticketDetails.tokenId}
               />
             </Modal>
           )}

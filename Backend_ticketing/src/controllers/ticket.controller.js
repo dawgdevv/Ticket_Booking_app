@@ -5,6 +5,11 @@ import ResellTicket from "../models/resell.model.js";
 import Marketplace from "../models/market.model.js";
 import AuctionTicket from "../models/auction.model.js";
 import AuctionWonTickets from "../models/auctionwontickets.model.js";
+import {
+	mintNFTTicket,
+	generateTicketMetadata,
+} from "../utils/ethereum.service.js";
+import { ethers } from "ethers";
 
 export const bookTicket = async (req, res) => {
 	const { eventId, quantity, seats } = req.body;
@@ -263,5 +268,83 @@ export const getAuctionWonTickets = async (req, res) => {
 			message: "Failed to fetch auction won tickets",
 			error: error.message,
 		});
+	}
+};
+
+export const verifyEthPayment = async (req, res) => {
+	const { txHash, eventId, seats, walletAddress } = req.body;
+	const userId = req.user.id;
+
+	try {
+		const provider = new ethers.providers.AlchemyProvider(
+			"goerli",
+			process.env.ALCHEMY_KEY
+		);
+		const transaction = await provider.getTransactionReceipt(txHash);
+
+		if (!transaction || !transaction.status) {
+			return res.status(400).json({ message: "Invalid or failed transaction" });
+		}
+
+		const event = await Event.findById(eventId);
+		if (!event) {
+			return res.status(404).json({ message: "Event not found" });
+		}
+
+		const ticket = new Ticket({
+			event: eventId,
+			owner: userId,
+			price: event.price,
+			quantity: seats.length,
+			seats,
+			venue: event.location,
+			isNFT: true,
+		});
+
+		await ticket.save();
+
+		if (walletAddress) {
+			await User.findByIdAndUpdate(userId, { walletAddress });
+		}
+
+		const metadataURI = await generateTicketMetadata(ticket, event);
+
+		for (const seat of seats) {
+			const result = await mintNFTTicket(
+				walletAddress,
+				event._id.toString(),
+				seat,
+				metadataURI
+			);
+
+			if (!result.success) {
+				return res
+					.status(500)
+					.json({ message: "NFT minting failed", error: result.error });
+			}
+
+			ticket.tokenId = result.tokenId;
+			ticket.contractAddress = process.env.TICKET_NFT_CONTRACT_ADDRESS;
+			ticket.blockchainTxHash = result.txHash;
+			ticket.metadataURI = metadataURI;
+			await ticket.save();
+		}
+
+		const user = await User.findById(userId);
+		user.tickets.push(ticket._id);
+		await user.save();
+
+		event.tickets.push(ticket._id);
+		await event.save();
+
+		const populatedTicket = await Ticket.findById(ticket._id).populate("event");
+
+		res.status(201).json({
+			message: "NFT ticket created successfully",
+			ticket: populatedTicket,
+		});
+	} catch (error) {
+		console.error("Error creating NFT ticket:", error);
+		res.status(500).json({ message: error.message });
 	}
 };

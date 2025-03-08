@@ -17,6 +17,8 @@ import http from "http";
 import { Server } from "socket.io";
 import User from "./models/user.model.js";
 import Bid from "./models/bids.model.js";
+import ethPaymentRoutes from "./routes/eth.payment.routes.js";
+import nftRoutes from "./routes/nft.routes.js";
 
 dotenv.config();
 
@@ -66,6 +68,8 @@ app.use("/payment", paymentRoutes);
 app.use("/tickets", ticketRoutes);
 app.use("/auctionrooms", auctionjoin);
 app.use("/ai", aiRoutes);
+app.use("/eth-payment", ethPaymentRoutes);
+app.use("/nft", nftRoutes);
 
 // WebSocket logic for auction rooms
 io.on("connection", (socket) => {

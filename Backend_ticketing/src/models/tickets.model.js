@@ -8,6 +8,10 @@ const ticketSchema = new Schema({
 	seats: [String],
 	venue: { type: String, required: true },
 	resale: { type: Boolean, default: false },
+	// Add NFT fields
+	tokenId: { type: String, default: null },
+	tokenURI: { type: String, default: null },
+	onChain: { type: Boolean, default: false },
 });
 
 const Ticket = mongoose.model("Ticket", ticketSchema);

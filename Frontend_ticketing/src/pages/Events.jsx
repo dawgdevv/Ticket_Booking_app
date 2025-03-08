@@ -11,6 +11,7 @@ import EventCard from "../components/EventCard";
 import TicketDetails from "../components/TicketDetails";
 import HiveAuth from "../components/HiveAuth";
 import HivePayment from "../components/HivePayment";
+import MoonPayPayment from "../components/MoonPayPayment";
 
 const stripePromise = loadStripe(
   "pk_test_51QLIkbRwlFB03Gh52W76kjQaqVtMXt1tlXl61HihY6CcPcRfaRff6rDXKbBWcAnATNifWIP9TsV5Fu9w4UL8Wnmz00keNN6jlM"
@@ -27,6 +28,7 @@ const Events = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hivePaymentResult, setHivePaymentResult] = useState(null);
+  const [moonpayPaymentResult, setMoonpayPaymentResult] = useState(null);
 
   // Hive related states
   const [hiveUser, setHiveUser] = useState(null);
@@ -139,6 +141,11 @@ const Events = () => {
   // Handle payment success (for both Stripe and Hive)
   const handlePaymentSuccess = async (paymentDetails = null) => {
     try {
+      // If it's a MoonPay payment, store the details
+      if (paymentDetails && paymentDetails.currency?.includes("MoonPay")) {
+        setMoonpayPaymentResult(paymentDetails);
+      }
+
       const response = await axios.post(
         import.meta.env.VITE_BACKEND_URL + "/tickets/book",
         {
@@ -233,6 +240,8 @@ const Events = () => {
       ? hivePaymentResult.simulatedPayment
         ? "HIVE Blockchain (Test Mode)"
         : "HIVE Blockchain"
+      : moonpayPaymentResult
+      ? "MoonPay"
       : "Credit Card";
     doc.text(`Payment Method: ${paymentMethodText}`, 20, 100);
 
@@ -245,6 +254,13 @@ const Events = () => {
           120
         );
       }
+    } else if (moonpayPaymentResult) {
+      doc.text(
+        `Transaction ID: ${moonpayPaymentResult.transactionId}`,
+        20,
+        110
+      );
+      doc.text(`Payment processed via MoonPay`, 20, 120);
     }
 
     doc.save(`${ticketDetails?._id}_ticket.pdf`);
@@ -441,6 +457,35 @@ const Events = () => {
                     </div>
                   )}
 
+                  {/* MoonPay Option - always available */}
+                  <button
+                    onClick={() => setPaymentMethod("moonpay")}
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-lg flex items-center justify-center"
+                  >
+                    <svg
+                      className="h-6 w-6 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        d="M12 2L2 7L12 12L22 7L12 2Z"
+                        fill="currentColor"
+                      />
+                      <path
+                        d="M2 17L12 22L22 17"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M2 12L12 17L22 12"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    Pay with MoonPay
+                  </button>
+
                   {/* Card Payment Option - always available */}
                   <button
                     onClick={() => setPaymentMethod("stripe")}
@@ -504,6 +549,14 @@ const Events = () => {
                   </button>
                 </div>
               ) : null}
+
+              {paymentMethod === "moonpay" && (
+                <MoonPayPayment
+                  amount={calculateTotalPrice() * 100}
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onPaymentFailure={handlePaymentFailure}
+                />
+              )}
             </Modal>
           )}
 

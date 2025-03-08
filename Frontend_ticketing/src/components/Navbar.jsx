@@ -80,16 +80,16 @@ const Navbar = () => {
                     Auction Rooms
                   </Link>
                   <Link
+                    to="/nft-tickets"
+                    className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    NFT Tickets
+                  </Link>
+                  <Link
                     to="/search"
                     className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     AI Search
-                  </Link>
-                  <Link
-                    to="/store"
-                    className="hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Store
                   </Link>
                 </div>
               </div>

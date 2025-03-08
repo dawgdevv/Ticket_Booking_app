@@ -6,6 +6,7 @@ import {
 	logout,
 	getUserTickets,
 	getUserProfile,
+	getNFTTickets,
 } from "../controllers/user.controller.js";
 import {
 	signupValidation,
@@ -21,5 +22,5 @@ router.post("/login", loginValidation, login);
 router.post("/logout", logout);
 router.get("/profile", authenticateUser, getUserProfile);
 router.get("/tickets", authenticateUser, getUserTickets);
-
+router.get("/nft-tickets", authenticateUser, getNFTTickets);
 export default router;

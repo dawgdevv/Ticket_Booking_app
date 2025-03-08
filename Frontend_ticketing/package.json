@@ -11,6 +11,8 @@
   "dependencies": {
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
+    "@moonpay/moonpay-js": "^0.6.6",
+    "@moonpay/moonpay-react": "^1.8.10",
     "@mui/material": "^6.1.9",
     "@stripe/react-stripe-js": "^2.9.0",
     "@stripe/stripe-js": "^4.10.0",
@@ -18,6 +20,7 @@
     "bcrypt": "^5.1.1",
     "canvas-confetti": "^1.9.3",
     "client": "file:",
+    "ethers": "^6.13.5",
     "framer-motion": "^12.0.1",
     "html-to-image": "^1.11.11",
     "jspdf": "^2.5.2",

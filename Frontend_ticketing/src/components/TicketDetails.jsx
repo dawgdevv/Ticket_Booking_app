@@ -1,4 +1,8 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import Web3Connect from "./Web3Connect";
+import { mintTicketAsNFT } from "../services/nft.service";
 
 const TicketDetails = ({
   ticket,
@@ -8,8 +12,96 @@ const TicketDetails = ({
   isBroadcasted,
   paymentMethod,
   hivePayment,
+  moonpayPayment,
 }) => {
+  const [walletAddress, setWalletAddress] = useState("");
+  const [isNFTMinting, setIsNFTMinting] = useState(false);
+  const [nftMinted, setNftMinted] = useState(false);
+  const [nftError, setNftError] = useState("");
+  const [nftTokenId, setNftTokenId] = useState(null);
+  const [hiveWallet, setHiveWallet] = useState("");
+
+  // If the ticket already has a token ID, set nftMinted to true
+  useEffect(() => {
+    if (ticket && ticket.tokenId) {
+      setNftMinted(true);
+      // Handle potential array of token IDs (comma-separated string)
+      setNftTokenId(ticket.tokenId);
+    }
+  }, [ticket]);
+
   if (!ticket) return null;
+
+  const handleWalletConnect = (address) => {
+    setWalletAddress(address);
+    console.log("Connected wallet:", address);
+  };
+
+  const handleHiveConnect = (wallet) => {
+    setHiveWallet(wallet);
+    console.log("Connected Hive wallet:", wallet);
+  };
+
+  const handleMintNFT = async () => {
+    if (!walletAddress && !hiveWallet) {
+      setNftError("Please connect a wallet first");
+      return;
+    }
+
+    try {
+      setIsNFTMinting(true);
+      setNftError("");
+
+      console.log("Minting NFT for ticket:", ticket._id);
+      console.log("Event ID:", ticket.event?._id);
+      console.log("Seat(s):", ticket.seats);
+
+      // Pass event ID along with the ticket ID and wallet address
+      const result = await mintTicketAsNFT(
+        ticket._id,
+        walletAddress || hiveWallet,
+        ticket.event?._id
+      );
+
+      console.log("Minting result:", result);
+      setNftMinted(true);
+      setNftTokenId(result.tokenId);
+      setIsNFTMinting(false);
+    } catch (error) {
+      console.error("Minting failed:", error);
+
+      // Better error extraction
+      let errorMessage = "Failed to mint NFT";
+
+      try {
+        // Check for specific BigInt conversion errors
+        if (error.response?.data?.error) {
+          if (
+            error.response.data.error.includes("BigNumberish") ||
+            error.response.data.error.includes("BigInt")
+          ) {
+            errorMessage = "Invalid event ID format. Please contact support.";
+          } else if (error.response.data.error.includes("execution reverted")) {
+            // Extract reverted reason if available
+            const match = error.response.data.error.match(/reason="([^"]+)"/);
+            if (match && match[1]) {
+              errorMessage = match[1];
+            } else {
+              errorMessage = "Contract execution failed";
+            }
+          } else {
+            errorMessage =
+              error.response.data.message || error.response.data.error;
+          }
+        }
+      } catch (parseError) {
+        console.error("Error parsing error:", parseError);
+      }
+
+      setNftError(errorMessage);
+      setIsNFTMinting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -22,7 +114,9 @@ const TicketDetails = ({
           Your Ticket is Ready!
         </h2>
 
+        {/* Ticket details section - unchanged */}
         <div className="space-y-4">
+          {/* Existing ticket details */}
           <div className="flex justify-between">
             <span className="font-semibold">Event:</span>
             <span>{ticket.event?.name || "N/A"}</span>
@@ -57,7 +151,11 @@ const TicketDetails = ({
           <div className="flex justify-between">
             <span className="font-semibold">Payment Method:</span>
             <span>
-              {paymentMethod === "hive" ? "HIVE Blockchain" : "Credit Card"}
+              {paymentMethod === "hive"
+                ? "HIVE Blockchain"
+                : paymentMethod === "moonpay"
+                ? "MoonPay"
+                : "Credit Card"}
             </span>
           </div>
 
@@ -106,6 +204,62 @@ const TicketDetails = ({
             </div>
           )}
 
+          {/* Add MoonPay payment details */}
+          {paymentMethod === "moonpay" && moonpayPayment && (
+            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="flex items-start">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2 text-blue-700 mt-0.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="text-sm">
+                  <p className="font-medium text-blue-800">
+                    MoonPay Transaction Details
+                  </p>
+                  <p className="mt-1">
+                    Transaction ID: {moonpayPayment.transactionId}
+                  </p>
+                  {moonpayPayment.mode === "buy" ? (
+                    <>
+                      <p>
+                        Purchased: {moonpayPayment.cryptoAmount}{" "}
+                        {moonpayPayment.cryptoCurrency}
+                      </p>
+                      <p>
+                        Paid: {moonpayPayment.fiatAmount}{" "}
+                        {moonpayPayment.fiatCurrency}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Sold: {moonpayPayment.cryptoAmount}{" "}
+                        {moonpayPayment.cryptoCurrency}
+                      </p>
+                      <p>
+                        Received: {moonpayPayment.fiatAmount}{" "}
+                        {moonpayPayment.fiatCurrency}
+                      </p>
+                    </>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(moonpayPayment.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Hive blockchain broadcast status */}
           {isBroadcasted && (
             <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md">
@@ -130,6 +284,135 @@ const TicketDetails = ({
           )}
         </div>
 
+        {/* NFT Section - Updated with better error handling */}
+        <div className="mt-6 pt-6 border-t border-amber-300">
+          <h3 className="text-xl font-semibold text-amber-800 mb-3">
+            Make it an NFT
+          </h3>
+          <p className="text-gray-700 mb-4">
+            Turn your ticket into an NFT that you can store in your wallet and
+            transfer to others on the blockchain.
+          </p>
+
+          {ticket.tokenId ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-green-700 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                This ticket is already an NFT! (Token ID: {ticket.tokenId})
+              </p>
+            </div>
+          ) : nftMinted ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-green-700 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                NFT successfully minted! Token ID: {nftTokenId}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Wallet connection options */}
+              <div className="space-y-4 mb-4">
+                {!hiveUser && <Web3Connect onConnect={handleWalletConnect} />}
+                {hiveUser && !hiveWallet && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">
+                      Connected with Hive as @{hiveUser.username}
+                    </p>
+                    <button
+                      onClick={() => handleHiveConnect(hiveUser.username)}
+                      className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Use Hive Account for NFT
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Minting button */}
+              {(walletAddress || hiveWallet) && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleMintNFT}
+                  disabled={isNFTMinting}
+                  className="w-full mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isNFTMinting ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Minting...
+                    </div>
+                  ) : (
+                    "Mint as NFT"
+                  )}
+                </motion.button>
+              )}
+
+              {nftError && (
+                <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-red-600 text-sm flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {nftError}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Download button */}
         <div className="mt-8 flex justify-center">
           <button
             onClick={onDownload}
@@ -141,6 +424,17 @@ const TicketDetails = ({
       </div>
     </motion.div>
   );
+};
+
+TicketDetails.propTypes = {
+  ticket: PropTypes.object.isRequired,
+  formatPrice: PropTypes.func.isRequired,
+  onDownload: PropTypes.func.isRequired,
+  hiveUser: PropTypes.object,
+  isBroadcasted: PropTypes.bool,
+  paymentMethod: PropTypes.string,
+  hivePayment: PropTypes.object,
+  moonpayPayment: PropTypes.object,
 };
 
 export default TicketDetails;
