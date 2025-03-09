@@ -147,18 +147,6 @@ const TicketDetails = ({
             <span className="text-xs">{ticket._id || "N/A"}</span>
           </div>
 
-          {/* Payment method information */}
-          <div className="flex justify-between">
-            <span className="font-semibold">Payment Method:</span>
-            <span>
-              {paymentMethod === "hive"
-                ? "HIVE Blockchain"
-                : paymentMethod === "moonpay"
-                ? "MoonPay"
-                : "Credit Card"}
-            </span>
-          </div>
-
           {/* Show Hive payment details if available */}
           {hivePayment && (
             <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
