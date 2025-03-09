@@ -148,7 +148,7 @@ const TicketDetails = ({
           </div>
 
           {/* Show Hive payment details if available */}
-          {hivePayment && (
+          {/* {hivePayment && (
             <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
               <div className="flex items-start">
                 <svg
@@ -190,7 +190,7 @@ const TicketDetails = ({
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Add MoonPay payment details */}
           {paymentMethod === "moonpay" && moonpayPayment && (
@@ -277,10 +277,7 @@ const TicketDetails = ({
           <h3 className="text-xl font-semibold text-amber-800 mb-3">
             Make it an NFT
           </h3>
-          <p className="text-gray-700 mb-4">
-            Turn your ticket into an NFT that you can store in your wallet and
-            transfer to others on the blockchain.
-          </p>
+          <p className="text-gray-700 mb-4">Turn your ticket into an NFT</p>
 
           {ticket.tokenId ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
