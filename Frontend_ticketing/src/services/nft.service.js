@@ -2,19 +2,21 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-export const mintTicketAsNFT = async (ticketId, walletAddress, eventId) => {
+export const mintTicketAsNFT = async (
+  ticketId,
+  walletAddress,
+  eventId,
+  useMockNFT = false
+) => {
   try {
     console.log(`Minting ticket ${ticketId} for wallet ${walletAddress}`);
-
-    // Check if we're in development mode
-    const useMockNFT = import.meta.env.VITE_USE_MOCK_NFT === "true";
 
     const response = await axios.post(
       `${API_URL}/nft/mint/${ticketId}`,
       {
         walletAddress,
-        eventId: eventId.toString(), // Ensure it's a string
-        useMockNFT, // Tell backend if we want mock mode
+        eventId: eventId?.toString() || "", // Convert to string or empty string if undefined
+        useMockNFT, // Tell backend to use mock mode if true
       },
       {
         headers: {
