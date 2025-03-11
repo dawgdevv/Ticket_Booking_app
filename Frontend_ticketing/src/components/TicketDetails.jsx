@@ -174,7 +174,7 @@ const TicketDetails = ({
           </div>
 
           {/* Show Hive payment details if available */}
-          {/* {hivePayment && (
+          {hivePayment && (
             <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
               <div className="flex items-start">
                 <svg
@@ -216,7 +216,7 @@ const TicketDetails = ({
                 </div>
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Add MoonPay payment details */}
           {paymentMethod === "moonpay" && moonpayPayment && (
