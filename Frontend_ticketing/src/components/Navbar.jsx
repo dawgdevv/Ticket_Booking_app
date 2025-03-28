@@ -41,7 +41,7 @@ const Navbar = () => {
             />
 
             <p className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-2xl font-bold">
-              DTIX
+              dih-TIX
             </p>
             {isLoggedIn ? (
               <div className="hidden md:block">
