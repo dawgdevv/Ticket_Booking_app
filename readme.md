@@ -1,4 +1,4 @@
-# Ticket Booking App(DTIX)
+# DTIX: TICKETING ON STEROIDS
 
 ## Overview
 
