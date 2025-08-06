@@ -198,3 +198,4 @@ This project is open source and available under the [MIT License](LICENSE).
 - [MoonPay](https://www.moonpay.com/)
 - [Ethereum](https://ethereum.org/)
 - [IPFS](https://ipfs.io/)
+
