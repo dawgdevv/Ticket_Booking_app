@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import connectDB from "./db/db.js";
 import userRoutes from "./routes/user.routes.js";
 import cors from "cors";
@@ -49,11 +50,27 @@ app.use(
 
 connectDB();
 
+// Trust proxy when behind services like Heroku/Vercel reverse proxies
+app.set("trust proxy", 1);
+
 app.use(
 	session({
-		secret: process.env.SESSION_SECRET,
+		secret: process.env.SESSION_SECRET || "change_this_secret", // Provide fallback but recommend setting
 		resave: false,
 		saveUninitialized: false,
+		store: MongoStore.create({
+			mongoUrl: process.env.Mongo_URI,
+			collectionName: "sessions",
+			ttl: Number(process.env.SESSION_TTL_SECONDS) || 60 * 60 * 24 * 7, // default 7 days
+			touchAfter: 24 * 3600, // minimize session writes when unmodified
+		}),
+		cookie: {
+			secure: process.env.NODE_ENV === "production", // served over HTTPS in production
+			httpOnly: true,
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+			maxAge:
+				(Number(process.env.SESSION_TTL_SECONDS) || 60 * 60 * 24 * 7) * 1000,
+		},
 	})
 );
 
