@@ -203,7 +203,7 @@ const Events = [
 const seedEvents = async () => {
 	try {
 		await mongoose.connect(
-			"mongodb+srv://nishantraj:nishant24@cluster0.0p0yq.mongodb.net/test_db?retryWrites=true&w=majority",
+			"mongodb+srv://nishantraj_db_user:nishu242002@cluster0.lmdckqd.mongodb.net/ticketdb?appName=Cluster0",
 			{}
 		);
 
