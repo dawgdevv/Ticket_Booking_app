@@ -1,10 +1,11 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Mistral } from "@mistralai/mistralai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const apiKey = process.env.MISTRAL_API_KEY;
+
+const client = new Mistral({ apiKey: apiKey });
 
 const events = [
 	{
@@ -212,6 +213,9 @@ function getEventDetails(eventName = "") {
 
 export const getEventInfo = async (query) => {
 	try {
+		if (!apiKey) {
+			throw new Error("MISTRAL_API_KEY is not defined in the environment variables.");
+		}
 		const prompt = `You are a helpful event assistant. Please help with the following query about events: ${query}
     
 Available events:
@@ -219,8 +223,11 @@ ${events.map((event) => `- ${event.name}: ${event.description}`).join("\n")}
 
 If asked about specific event details, I'll provide them.`;
 
-		const result = await model.generateContent(prompt);
-		const response = result.response.text();
+		const chatResponse = await client.chat.complete({
+			model: "mistral-tiny",
+			messages: [{ role: "user", content: prompt }],
+		});
+		const response = chatResponse.choices[0].message.content;
 
 		// Check if response mentions any event name
 		const eventMentioned = events.some((event) =>
